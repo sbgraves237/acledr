@@ -11,7 +11,7 @@
 #' AfgNthAnt <- c(Afghanistan="AFG", "Netherlands Antilles" = 
 #'        "Found in row 179 of referenceTable with column 1 = ''") 
 #' all.equal(AfgNethAnt, AfgHtnAnt)
-#' @importFrom rworldmap countrySynonyms
+#' @importFrom(rworldmap, countrySynonyms)
 grepInTable <- function(pattern, referenceTable = 
                           rworldmap::countrySynonyms[, -1], 
                         ignore.case=TRUE){
