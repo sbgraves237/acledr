@@ -1,0 +1,10 @@
+.Rproj.user
+acledr.Rproj
+.gitignore
+revdep
+.Rhistory
+.DS_Store
+inst/.DS_Store
+inst/demoFiles/.DS_Store
+man/.DS_Store
+CRAN-SUBMISSION
