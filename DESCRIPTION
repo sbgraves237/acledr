@@ -12,7 +12,7 @@ Depends: R (>= 4.4.2)
 Suggests: Ecfun, Ecdat
 Description: Merge and analyze data from Armed Conflict Location and Event Data (ACLED) and possibly other sources, e.g., World Bank.
 LazyData: true
-License: GPL (>=3)
+License: GPL (>=3) + file LICENSE
 Language: en-us
 URL: https://github.com/sbgraves237/acledr
 NeedsCompilation: no
