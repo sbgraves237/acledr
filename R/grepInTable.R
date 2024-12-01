@@ -3,9 +3,7 @@
 #' @param pattern A character vector containing regular expressions to search for matches in refereanceTable[, -1] and return the corresponding element of referenceTable[, 1]
 #' @param referenceTable An object to search for pattern in as.data.frame(referenceTable)[-1]
 #' @param ignore.case FALSE to search for pattern; TRUE to search for toupper(pattern)
-#'
 #' @return A character vector containing matches or error messages with names = pattern
-#'
 #' @examples
 #' AfgNethAnt <- grepInTable(c('Afghanistan', 'Netherlands Antilles'))
 #' AfgNthAnt <- c(Afghanistan="AFG", "Netherlands Antilles" = 
