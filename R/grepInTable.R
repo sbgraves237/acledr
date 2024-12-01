@@ -1,14 +1,27 @@
+#' grep for each element of a character vector patter in referenceTable
+#'
+#' @param pattern A character vector containing regular expressions to search for matches in refereanceTable[, -1] and return the corresponding element of referenceTable[, 1]
+#' @param referenceTable 
+#'
+#' @return A character vector containing matches or error messages with names = pattern
+#' @export
+#'
+#' @examples
+#' AfgNethAnt <- grepInTable(c('Afghanistan', 'Netherlands Antilles'))
+#' AfgNthAnt <- c(Afghanistan="AFG", "Netherlands Antilles"="Found in row 179 of referenceTable with column 1 = ''" 
+#' all.equal(AfgNethAnt, AfgHtnAnt)
 grepInTable <- function(pattern, referenceTable = 
                           rworldmap::countrySynonyms[, -1], 
                         ignore.case=TRUE, collapse=', ', ...){
+  rT <- as.data.frame(referenceTable)
   if(ignore.case){ 
     ux <- toupper(pattern)
-    iso3 <- toupper(referenceTable[, 1])
-    ctrySyn <- lapply(referenceTable[-1], toupper)
+    iso3 <- toupper(rT[, 1])
+    ctrySyn <- lapply(rT[-1], toupper)
   } else {
     ux <- pattern
-    iso3 <- referenceTable[, 1]
-    ctrySyn <- referenceTable[-1]
+    iso3 <- rT[, 1]
+    ctrySyn <- rT[-1]
   }
   nRefs <- length(ctrySyn)
   nStr <- length(pattern)
@@ -27,7 +40,7 @@ grepInTable <- function(pattern, referenceTable =
     } else{
       out[iStr] <- iso3[ix]
       if(nchar(out[iStr])<1){ 
-        out[iStr] <- paste('Found row', ix, 
+        out[iStr] <- paste('Found in row', ix, 
                            "of referenceTable with column 1 = ''")
       }
     }
