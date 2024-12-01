@@ -8,4 +8,4 @@
 ^\.github$
 ^CRAN-SUBMISSION$
 ^cran-comments.html$
-^README.Rmd$ 
+README.Rmd 
