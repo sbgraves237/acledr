@@ -16,3 +16,4 @@ License: GPL (>=3) + file LICENSE
 Language: en-us
 URL: https://github.com/sbgraves237/acledr
 NeedsCompilation: no
+RoxygenNote: 7.3.2
