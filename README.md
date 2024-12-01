@@ -1,4 +1,5 @@
-<!-- README.md is generated from README.Rmd. Please edit README.Rmd, NOT README.md. -->
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
 
 # acledr
 
@@ -6,6 +7,5 @@
 
 <!-- badges: end -->
 
-# acledr
-
-This “acledr” package contains vignettes, functions and data to analyze ACLED data, possibly combined with data from other sources.
+This “acledr” package contains vignettes, functions and data to analyze
+ACLED data, possibly combined with data from other sources.
