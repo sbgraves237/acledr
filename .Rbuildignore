@@ -1,0 +1,10 @@
+^.renviron$
+^acledr.Rproj$
+^.*\.Rproj$
+^\.Rproj\.user$
+^cran-comments.md$
+^revdep$
+^CRAN-RELEASE$
+^\.github$
+^CRAN-SUBMISSION$
+^cran-comments.html$
