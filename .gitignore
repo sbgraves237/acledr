@@ -8,3 +8,6 @@ inst/.DS_Store
 inst/demoFiles/.DS_Store
 man/.DS_Store
 CRAN-SUBMISSION
+.Rdata
+.httr-oauth
+.quarto
