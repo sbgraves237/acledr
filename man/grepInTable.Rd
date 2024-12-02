@@ -20,20 +20,14 @@
   Return a named character vector of the contents 
   of \code{referenceTable[, 1]} found, with names 
   being \code{pattern}. If no match is found, 
-  return, 
-
-  Search for a specific  name on different columns 
-  of alternative names in all but the first column of 
-  \code{referenceTable} and return the contents of the 
-  first column if found or "No match found for country", 
-  followed by the corresponding value of \code{pattern}.
-  If an empty string, \code{''}, is found, complain
-  about that. 
+  return an appropriate error message for that 
+  element of \code{pattern}. If an empty string, 
+  \code{''}, is found, complain about that. 
 }
 \usage{
 grepInTable(pattern, referenceTable = 
-        countrySynonyms[, -1], ignore.case=TRUE), 
-        collapse=', ')
+        countrySynonyms[, -1], ignore.case=TRUE, 
+        collapse=', ', ...)
 }
 \arguments{
   \item{pattern}{ 
@@ -94,7 +88,7 @@ tstCodes <- grepInTable(
     c('Iran', 'Christmas Island', 'eSwatini'))
     
 answer <- c(Iran='IRN', 'Christmas Island' =
-  paste("Found row 53 of referenceTable with column 1 = ''"),  
+  paste("Found in row 53 of referenceTable with column 1 = ''"),  
   'eSwatini'="No match found for eSwatini")    
 
 \dontshow{

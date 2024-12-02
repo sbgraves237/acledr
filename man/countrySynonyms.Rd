@@ -20,20 +20,20 @@ On 2024-12-02 I was not able to get R CMD check to find
         ISO-3166 three-letter code to return
         when a match is found.}
     \item{\code{name1}}{most common country name}
-    \item{\code{name2, name3, name4, name5, name6, name7, name8}}{
+    \item{\code{name2}, \code{name3}, \code{name4}, \code{name5}, \code{name6}, \code{name7}, \code{name8}}{
         alternative country names
     }
   }
 }
-\details{
+%\details{
 %%  ~~ If necessary, more details than the __description__ above ~~
-}
-\source{
+%}
+%\source{
 %%  ~~ reference to a publication or URL from which the data were obtained ~~
-}
-\references{
+%}
+%\references{
 %%  ~~ possibly secondary sources and usages ~~
-}
+%}
 \examples{
 data(countrySynonyms)
 str(countrySynonyms) 
