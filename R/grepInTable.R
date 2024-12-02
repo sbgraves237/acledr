@@ -1,7 +1,6 @@
 grepInTable <- function(pattern, referenceTable = 
-                        rworldmap::countrySynonyms[, -1], 
-                        ignore.case=TRUE, 
-                        collapse=', ', ...){
+          countrySynonyms[, -1], ignore.case=TRUE, 
+          collapse=', ', ...){
   rT <- as.data.frame(referenceTable)
   if(ignore.case){ 
     ux <- toupper(pattern)
