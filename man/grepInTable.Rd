@@ -32,8 +32,7 @@
 }
 \usage{
 grepInTable(pattern, referenceTable = 
-        rworldmap::countrySynonyms[, -1], 
-        ignore.case=TRUE), 
+        countrySynonyms[, -1], ignore.case=TRUE), 
         collapse=', ')
 }
 \arguments{
