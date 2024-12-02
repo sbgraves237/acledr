@@ -13,6 +13,7 @@
   found. 
   
   The default \code{referenceTable} is 
+  \code{countrySynonyms}, a local copy of 
   \code{\link[rworldmap]{countrySynonyms}}[, -1], 
   which returns 3-letter country codes per 
   \href{https://en.wikipedia.org/wiki/List_of_ISO_3166_country_codes}{ISO-3166}. 
@@ -26,8 +27,8 @@
 }
 \usage{
 grepInTable(pattern, referenceTable = 
-        countrySynonyms[, -1], ignore.case=TRUE, 
-        collapse=', ', ...)
+      countrySynonyms[, -1], ignore.case=TRUE, 
+      collapse=', ', ...)
 }
 \arguments{
   \item{pattern}{ 
