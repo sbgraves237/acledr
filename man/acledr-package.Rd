@@ -17,8 +17,9 @@
   
   \enumerate{
     \item {
+      \code{acledr_readACLEDsummarydata}
       Access \code{ACLED} summary data, read it into R as 
-      a \code{\link{data.frame}}, then save it and a few 
+      a \code{\link{data.frame}}, then save it with a few 
       summaries as \code{data.frame}s in the package. 
     }
     \item {
