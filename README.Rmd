@@ -14,6 +14,7 @@ knitr::opts_chunk$set(
 # acledr
 
 <!-- badges: start -->
+[![R-CMD-check](https://github.com/sbgraves237/acledr/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/sbgraves237/acledr/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
 This “acledr” package contains vignettes, functions and data to analyze ACLED data, possibly combined with data from other sources.
