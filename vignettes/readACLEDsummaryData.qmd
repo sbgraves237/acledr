@@ -149,7 +149,7 @@ Save `ACLEDpopGDP`.
 
 ```{r}
 #| label: save
-save(ACLEDpopGDP, file='ACLEDpopGDP.rda', 
-     compress=TRUE)
+#save(ACLEDpopGDP, file='ACLEDpopGDP.rda', 
+#     compress=TRUE)
 ```
 
