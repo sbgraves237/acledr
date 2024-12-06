@@ -1,0 +1,182 @@
+---
+title: "Read ACLED summary data"
+author: "Spencer Graves"
+date: "2024-12-06"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+
+[Armed Conflict Location and Event Data (`ACLED`)](https://en.wikipedia.org/wiki/Armed_Conflict_Location_and_Event_Data) is a non-profit organization specializing in collecting incident-level data on conflicts that support analysis and crisis mapping in near real time. ACLED codes the dates, actors, locations, fatalities, and types of all incidents of political violence and demonstration events around the world as reports appear in the literature they monitor. The project began in 2005 focusing on African states. Its coverage expanded multiple times until 2021-01 when it covered the entirety of humanity, by which time it had over 1.3 million events in its database. [A pdf file gives the start data of coverage for different countries.](https://acleddata.com/acleddatanew/wp-content/uploads/dlm_uploads/2019/01/ACLED_Country-and-Time-Period-coverage_updatedFeb2022.pdf) These range from 1997-01 for continental Africa to 2021-01 for most of North America and Oceana (including Australia and New Zealand) and Antarctica. 
+
+The [ACLED Explorer](https://acleddata.com/explorer/) makes it moderately easy for someone to download counts of either events or fatalities in a specific date range by "political violence", "organized violence", "demonstrations", "civilian targeting" or "all event types". Data can be grouped by "region", "country", `Admin1` and "Location". Counts can optionally be restricted to only specific actors or "actor types". Events can optionally be grouped by event type and by day or week. 
+
+Long term, we'd like to build models of the evolution of the numbers of events and deaths by event type, month and country. Such models have two uses: 
+
+- First to [compute the probability of detecting a reduction in the lethality of a particular conflict in a specific period of time if an intervention had an effect of a given magnitude (statistical power)](https://en.wikipedia.org/wiki/Power_(statistics)). 
+- Then if a proposed intervention is actually implemented, the same models can be used to evaluate the efficacy of the intervention(s).
+
+Before we do that, we first attempt simpler tasks: 
+
+1. Read and summarize `ACLED` data in various ways. *[this vignette]*
+2. Read World Bank (`WB`) data on population and level of econmic activity as Gross Domestic Product per capita (`GDPpc`) at both Purchasing Power Parity (`PPP`) and nominal: We need `PPP` to evaluate the impact of `GDPpc` and changes in `GDPpc` on the level of conflict. And we need nominal `GDP` to estimate budgets for certain types of interventions. (`GDP` is, of course, population times `GDPpc`.) 
+3. Merge `ACLED` and `WB` data. 
+4. Build static models of the relationships between `ACLED` and `WB` variables. 
+
+## Extract, download and read `ACLED` data 
+
+To make everything comparable, we downloaded events and fatalities from ACLED Explorer by country and event type for each month starting with 2021-01 as `*.csv` files. We moved these two files in the current working directory and renamed them `acled_aggregated_2021events.csv` and `acled_aggregated_2021fat.csv`, respectively. 
+
+```{r acledDir}
+#extdata <- pkgload::shim_system.file('extdata', package='acledr')
+# Error: 'shim_system.file' is not an exported object from 
+#        'namespace:pkgload'
+if(require(acledr)){ 
+  acledDir <- fs::path_package('acledr')
+} else acledDir <- ''
+
+if((length(acledDir)<1) || (acledDir == '')){ 
+  wd <- getwd()
+  wdList <- strsplit(wd, '/')[[1]]
+  acledri <- which(wdList=='acledr')
+  acledDir <-  do.call(file.path, as.list(wdList[1:acledri]))
+}
+
+acledDir
+```
+
+Got `acledDir`. This is difficult for `*.Rmd` in the vignettes folder. 
+
+```{r extdata}
+inst <- dir(acledDir, pattern='^inst$', full.names=TRUE)
+if((length(inst)<1) || (inst=='')){
+    extdata <- dir(acledrDir, pattern='^extdata$', 
+                 full.names=TRUE)
+} else {
+    extdata <- dir(inst, pattern='^extdata$', 
+                 full.names=TRUE)
+}
+extdata
+```
+
+Now find the deaths and events files. 
+
+```{r d_e_files}
+csvFiles <- dir(extdata, pattern='\\.csv$')
+(deathFile <- dir(extdata, pattern='2021fat\\.csv$', 
+                  full.names = TRUE))
+(eventFile <- dir(extdata, pattern='2021events\\.csv$', 
+                  full.names = TRUE))
+```
+
+Let's read these two files and confirm that they are identical except for the last column. 
+
+```{r readDat}
+deaths <- read.csv(deathFile)
+events <- read.csv(eventFile)
+
+all.equal(deaths[-4], events[-4])
+```
+
+Looks good. Let's combine them to create `ctryMoEv`. We then summarize those 
+
+- over `Event.month` to create `ctryEv` 
+- and across `Event.Type` to create `ctryMo`. 
+
+Then summarize `ctryEv` further 
+
+- across `Country` to get `Ev` 
+- and across `Event.Type` to get `ctry`. 
+
+```{r ctryMoEv}
+ctryMoEv <- events
+ctryMoEv$Event.month <- as.Date(events$Event.month)
+(firstMo <- min(ctryMoEv$Event.month))
+(lastMo <- max(ctryMoEv$Event.month))
+
+ctryMoEv$Deaths <- deaths$Fatalities
+ctryMoEv$deathsPerEvent <- (deaths$Fatalities/events$Events)
+str(ctryMoEv)
+```
+
+Before summarizing, let's compute `nCtries`, `nMonths`, and `nTypes`: 
+
+```{r factorNobs}
+Ctries <- table(ctryMoEv$Country)
+(nCtries <- length(Ctries))
+
+Months <- table(ctryMoEv$Event.month)
+(nMonths <- length(Months))
+
+Types <- table(ctryMoEv$Event.Type)
+(nTypes <- length(Types))
+
+(Nobs <- nrow(ctryMoEv))
+all.equal(Nobs, nCtries*nMonths*nTypes )
+```
+
+### `ctryEv` <- Sum (`Events`, `Deaths`) by (`Country`, `Event.Type`) across `Event.month`
+
+```{r ctryEv}
+str(Nmo <- table(ctryMoEv$Event.month))
+table(Nmo)
+
+library(dplyr)
+ctryEv <- (ctryMoEv %>% group_by(Country, Event.Type) 
+           %>% summarize(Events=sum(Events), Deaths=sum(Deaths)))
+ctryEv$DeathsPerEvent <- with(ctryEv, Deaths/Events)
+dim(ctryEv)
+head(ctryEv, 2)
+tail(ctryEv, 2)
+```
+
+### `ctryMo` <- sum (`Events`, `Deaths`) by (`Country`, `Event.month`) across `Event.Type`
+
+```{r ctryMo}
+ctryMo <- (ctryMoEv %>% group_by(Country, Event.month) 
+           %>% summarize(Events=sum(Events), Deaths=sum(Deaths)))
+ctryMo$DeathsPerEvent <- with(ctryMo, Deaths/Events)
+dim(ctryMo)
+head(ctryMo, 2)
+tail(ctryMo, 2)
+```
+
+### `Ev` <- sum (`Events`, `Deaths`) by `Event.Type` 
+
+```{r Ev}
+Ev <- (ctryEv %>% group_by(Event.Type) 
+           %>% summarize(Events=sum(Events), Deaths=sum(Deaths)))
+Ev$DeathsPerEvent <- with(Ev, Deaths/Events)
+dim(Ev)
+Ev
+```
+
+### `ctry` <- sum (`Events`, `Deaths`) by `Country` 
+
+```{r ctry}
+ctry <- (ctryEv %>% group_by(Country) 
+           %>% summarize(Events=sum(Events), Deaths=sum(Deaths)))
+ctry$DeathsPerEvent <- with(ctry, Deaths/Events)
+ctry <- as.data.frame(ctry)
+rownames(ctry) <- ctry$Country
+dim(ctry)
+head(ctry, 2)
+tail(ctry, 2)
+```
+
+Looks sensible. 
+
+## Save 
+
+Save `ACLEDpopGDP`.
+
+```{r}
+#| label: save
+#save(ACLEDpopGDP, file='ACLEDpopGDP.rda', 
+#     compress=TRUE)
+```
+
