@@ -2,7 +2,11 @@
 title: "Read ACLED summary data"
 author: "Spencer Graves"
 date: "2024-12-06"
-output: html_document
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteEngine{knitr::knitr}
+  %\VignetteIndexEntry{Read ACLED summary data}
+  %\usepackage[UTF-8]{inputenc}
 ---
 
 ```{r setup, include=FALSE}
