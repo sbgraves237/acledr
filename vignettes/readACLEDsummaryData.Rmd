@@ -58,7 +58,7 @@ Got `acledDir`. This is difficult for `*.Rmd` in the vignettes folder.
 ```{r extdata}
 inst <- dir(acledDir, pattern='^inst$', full.names=TRUE)
 if((length(inst)<1) || (inst=='')){
-    extdata <- dir(acledrDir, pattern='^extdata$', 
+    extdata <- dir(acledDir, pattern='^extdata$', 
                  full.names=TRUE)
 } else {
     extdata <- dir(inst, pattern='^extdata$', 
