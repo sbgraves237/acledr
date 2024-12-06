@@ -5,7 +5,7 @@
 Synonyms of country names for each ISO 3 letter country code to enable conversion
 }
 \description{
-Local copy of \code{\link[rworldmap]{countrySynonyms}}. 
+Local copy of %\code{\link[rworldmap]{countrySynonyms}}. 
 
 On 2024-12-02 I was not able to get R CMD check to find
 \code{countrySynonyms}, even though I had it in 
