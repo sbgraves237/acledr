@@ -33,7 +33,11 @@ Before we do that, we first attempt simpler tasks:
 
 ## Extract, download and read `ACLED` data 
 
-To make everything comparable, we downloaded events and fatalities from ACLED Explorer by country and event type for each month starting with 2021-01 as `*.csv` files. We moved these two files in the current working directory and renamed them `acled_aggregated_2021events.csv` and `acled_aggregated_2021fat.csv`, respectively. 
+To make everything comparable, we downloaded events and fatalities from ACLED Explorer by country and event type for each month starting with 2021-01 as `*.csv` files. This involved two requests from "ACLED Explorer" for "Event Counts" separate from "Fatality Counts". For each extraction, we requested, (2) "All event types", (3) a custom date range starting with the first day of the first month requested and ending with the last day of the last month requested. We also requested (4) "Select All" regions and (5) countries. (6) We did NOT request "specific Admin1 units". (7) We asked to group the data by country. (8) We did NOT select specific actors or types of actors. But we DID want to see events groups by (9) event type and (10) time period: month. 
+
+We moved these two files in the current working directory and renamed them `acled_aggregated_2021events.csv` and `acled_aggregated_2021fat.csv`, respectively. 
+
+These files were 2.5 MB each. For CRAN, ["As a general rule, neither data nor documentation should exceed 5MB"](https://www.thecoatlessprofessor.com/programming/r/size-and-limitations-of-packages-on-cran/). To meet these limits, sample data from 2023-12-01 to 2024-01-31 were extracted to include in the `extdata` directory of the package. 
 
 ```{r acledDir}
 #extdata <- pkgload::shim_system.file('extdata', package='acledr')
@@ -71,9 +75,9 @@ Now find the deaths and events files.
 
 ```{r d_e_files}
 csvFiles <- dir(extdata, pattern='\\.csv$')
-(deathFile <- dir(extdata, pattern='2021fat\\.csv$', 
+(deathFile <- dir(extdata, pattern='fat\\.csv$', 
                   full.names = TRUE))
-(eventFile <- dir(extdata, pattern='2021events\\.csv$', 
+(eventFile <- dir(extdata, pattern='events\\.csv$', 
                   full.names = TRUE))
 ```
 
