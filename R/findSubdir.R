@@ -68,7 +68,7 @@ findSubdir <- function(pkg="^acledr$", wd=getwd(),
     ermsg3 <- paste0('Subdirectory ', subdir, 
       ' not found associated with package ', pkg, 
       ', though subdir1 (', subdir1, ') was [', 
-      subdi, ']\n')
+      subDi, ']\n')
     stop(ermsg3)
   }
 ##
