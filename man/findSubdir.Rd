@@ -48,7 +48,7 @@ findSubdir(pkg='^acledr$', wd=getwd(),
   \href{https://r-pkgs.org/data.html#sec-data-extdata}{R Packages} 
   by Wickham and Bryan (accessed 2024-12-06) 
   recommends placing data files used to test 
-  read functions in \code{~inst\extdata} in 
+  read functions in \code{~inst/extdata} in 
   the source directory for the package. However, 
   when the package is compiled and distributed, 
   anything in the \code{inst} directory gets 
