@@ -30,8 +30,8 @@ findSubdir <- function(pkg="^acledr$", wd=getwd(),
 ##
 ## 2. Look for subdir in pkgParent 
 ##
-  whichDir <- function(path, pattern){
-    Dir <- dir(path, all.files = TRUE)
+  whichDir <- function(path, pattern, ...){
+    Dir <- dir(path, all.files = TRUE, ...)
     Subdp <- whichGrep(pattern, Dir)
     if(length(Subdp)>0){
       return(dir(path, all.files = TRUE, 
