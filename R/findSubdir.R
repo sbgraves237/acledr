@@ -56,6 +56,10 @@ findSubdir <- function(pkg="^acledr$", wd=getwd(),
       pkg, ' nor directly in ', pkg, ' itself.\n', 
       'In addition, subdir1 (', subdir1, 
       ') not found.\n')
+    cat('in findSubdir with pkg = ', pkg, ',\n')
+    cat('  wd = ', wd, ',\n')
+    cat('  subdir = ', subdir, ',\n')
+    cat('  and subdir1 = ', subdir1, ',\n')
     stop(ermsg2)
   }
 ##
