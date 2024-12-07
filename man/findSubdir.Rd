@@ -23,6 +23,11 @@ findSubdir(pkg='^acledr$', wd=getwd(),
     until a match is found -- or throw an 
     error if none are found.) 
   }
+  \item{wd}{
+    A regular expression giving a path either 
+    including \code{pkg} or to its immediate
+    parent. 
+  }
   \item{subdir}{
     A regular expression for the desired 
     subdirectory to be found first in the parent
@@ -31,12 +36,7 @@ findSubdir(pkg='^acledr$', wd=getwd(),
     not found in either of those, a search is 
     made in \code{subdir1}. 
   }
-  \item{wd}{
-    A regular expression giving a path either 
-    including \code{pkg} or to its immediate
-    parent. 
-  }
-  \item{subdire1}{
+  \item{subdir1}{
     A subdirectory of \code{pkg} in which to 
     search for \code{subdir} if it is not found
     in either the parent of \code{pkg} or in 
@@ -114,7 +114,7 @@ findSubdir(pkg='^acledr$', wd=getwd(),
   }
 # Ensure only one exact match
   Extdata1 <- findSubdir('^acledr$')
-  if(nchar(Extdata!)<1){
+  if(nchar(Extdata)<1){
     stop('subdir ', subdir, ' not found in', 
     ' package ', pkg)
   }
