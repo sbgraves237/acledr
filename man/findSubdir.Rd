@@ -118,6 +118,8 @@ findSubdir(pkg='^acledr$', wd=getwd(),
     stop('subdir ', subdir, ' not found in', 
     ' package ', pkg)
   }
+# probably error 
+  probErr <- findSubdir('^acledr$', '~')
 }    
 \keyword{data}
 \keyword{file}
