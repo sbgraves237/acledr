@@ -16,8 +16,8 @@ findSubdir <- function(pkg="^acledr$", wd=getwd(),
   nPkg <- length(Pkg)
   if(nPkg<1){
 #  pkg not found embedded in wd. Might it be a subdirectory?       
-    pkgDir <- dir(wd, pattern=pkg, 
-            all.files=TRUE, full.names=TRUE)
+    pkgDir <- unlist(dir(wd, pattern=pkg, 
+            all.files=TRUE, full.names=TRUE))
     if(length(pkgDir)<1)pkgDir <- wd 
     pkgParent <- wd 
   } else {
@@ -42,11 +42,11 @@ findSubdir <- function(pkg="^acledr$", wd=getwd(),
     }
     cat('In whichDir, path =\n', path, 
         '\npattern = ', pattern,'\n')
-    Dir <- dir(path, all.files = TRUE, ...)
+    Dir <- unlist(dir(path, all.files = TRUE, ...))
     Subdp <- whichGrep(pattern, Dir)
     if(length(Subdp)>0){
-      return(dir(path, all.files = TRUE, 
-                 full.names = TRUE)[Subdp])
+      return(unlist(dir(path, all.files = TRUE, 
+                 full.names = TRUE))[Subdp])
     }
     cat('whichDir(path=', path, ', pattern=', pattern, 
         ') found nothing.\n')
