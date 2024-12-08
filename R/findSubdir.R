@@ -13,19 +13,23 @@ findSubdir <- function(pkg="^acledr$", wd=getwd(),
     Pkg
   }
   Pkg <- whichGrep(pkg, wdList)
-  if(length(Pkg)<1){
+  nPkg <- length(Pkg)
+  if(nPkg<1){
 #  pkg not found embedded in wd. Might it be a subdirectory?       
-      pkgDir <- dir(wd, pattern=pkg, 
+    pkgDir <- dir(wd, pattern=pkg, 
             all.files=TRUE, full.names=TRUE)
-      if(length(pkgDir)<1)pkgDir <- wd 
-      pkgParent <- wd 
+    if(length(pkgDir)<1)pkgDir <- wd 
+    pkgParent <- wd 
   } else {
-      pkgDir <-  do.call(file.path, 
-                    as.list(wdList[1:Pkg[1]]))
-      if(Pkg[1]>1){
+    pkgDir <- character(nPkg)
+    for(i in 1:nPkg){
+      pkgDir[i] <-  do.call(file.path, 
+                    as.list(wdList[1:Pkg[i]]))
+    }
+    if(Pkg[1]>1){
         pkgParent<- do.call(file.path, 
                 as.list(wdList[1:(Pkg[1]-1)]))
-      } else pkgParent <- wd
+    } else pkgParent <- wd
   }
 ##
 ## 2. Look for subdir in pkgParent 
@@ -46,13 +50,23 @@ findSubdir <- function(pkg="^acledr$", wd=getwd(),
 ##
 ## 3. Look for subdir directly in pkgDir
 ##
-  subDir <- whichDir(pkgDir, subdir)
-  if(length(subDir)>0)return(subDir)
+  subDir <- vector('list', nPkg)
+  for(i in 1:nPkg){
+    subDir[[i]] <- whichDir(pkgDir[i], subdir)
+    if(length(subDir[[i]])>0)return(subDir[[i]])
+  }
 ##
 ## 4. Look for subdir1 in pkgDir
-##  
-  subDi <- whichDir(pkgDir, subdir1)
-  if(length(subDi)<1){
+## 
+  subDi <- vector('list', nPkg)
+  nsubDi <- integer(nPkg)
+  for(i in 1:nPkg){
+    subDi[[i]] <- whichDir(pkgDir[i], subdir1)
+    if((length(subDi[[i]])>0) && (nchar(subDi[[i]])>0)){
+      nsubDi[i] <- nchar(subDi[[i]])
+    }
+  }
+  if(sum(nsubDi)<1){
     ermsg2 <- paste0('Subdirectory ', subdir, 
       ' not found in either the parent of package ', 
       pkg, ' nor directly in ', pkg, ' itself.\n', 
