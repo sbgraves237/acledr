@@ -53,7 +53,7 @@ findSubdir <- function(pkg="^acledr$", wd=getwd(),
       Dir <- unlist(dir(Path, all.files = TRUE, ...))
       Subdp <- whichGrep(pattern, Dir)
       if(length(Subdp)>0){
-        return(unlist(dir(path, all.files = TRUE, 
+        return(unlist(dir(Path, all.files = TRUE, 
                  full.names = TRUE))[Subdp])
       }
     }
