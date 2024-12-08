@@ -107,19 +107,19 @@ findSubdir(pkg='^acledr$', wd=getwd(),
 }
 \examples{
 # Possible multiple matches
-  Extdata <- findSubdir('acledr')
+  (Extdata <- findSubdir('acledr'))
   if(nchar(Extdata)<1){
     stop('subdir ', subdir, ' not found in', 
     ' package ', pkg)
   }
 # Ensure only one exact match
-  Extdata1 <- findSubdir('^acledr$')
+  (Extdata1 <- findSubdir('^acledr$'))
   if(nchar(Extdata)<1){
     stop('subdir ', subdir, ' not found in', 
     ' package ', pkg)
   }
 # probably error 
-  probErr <- findSubdir('^acledr$', '~')
+  (probErr <- findSubdir('^acledr$', '~'))
 }    
 \keyword{data}
 \keyword{file}
