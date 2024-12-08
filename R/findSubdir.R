@@ -31,17 +31,23 @@ findSubdir <- function(pkg="^acledr$", wd=getwd(),
                 as.list(wdList[1:(Pkg[1]-1)]))
     } else pkgParent <- wd
   }
+  npkgDir <- length(pkgDir)
+  cat('pkgParent = ', pkgParent, '\n')
+  cat('npkgDir = ', npkgDir, '\n')
+  for(i in seq(1, length=npkgDir)){
+    cat('pkgDir[', i, '] = ', pkgDir[i], '\n')
+  }
 ##
 ## 2. Look for subdir in pkgParent 
 ##
   whichDir <- function(path, pattern, ...){
-    cat('In whichDir, class(path) =\n', 
+    cat('In whichDir, class(path) = ', 
       paste(class(path), collapse=', '), '\n')
     if(class(path)!='character'){
       print(path)
     }
-    cat('In whichDir, path =\n', path, 
-        '\npattern = ', pattern,'\n')
+    cat('In whichDir, path = ', path, 
+        '; pattern = ', pattern,'\n')
     Dir <- unlist(dir(path, all.files = TRUE, ...))
     Subdp <- whichGrep(pattern, Dir)
     if(length(Subdp)>0){
