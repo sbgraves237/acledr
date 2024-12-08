@@ -37,6 +37,9 @@ findSubdir <- function(pkg="^acledr$", wd=getwd(),
   whichDir <- function(path, pattern, ...){
     cat('In whichDir, class(path) =\n', 
       paste(class(path), collapse=', '), '\n')
+    if(class(path)!='character'){
+      print(path)
+    }
     cat('In whichDir, path =\n', path, 
         '\npattern = ', pattern,'\n')
     Dir <- dir(path, all.files = TRUE, ...)
