@@ -4,6 +4,7 @@ findSubdir <- function(pkg="^acledr$", wd=getwd(),
 ##
 ## 1. Find the "pkg" package directory
 ##
+  TRACE <- FALSE
   wdList <- strsplit(wd, .Platform$file.sep)[[1]]
   whichGrep <- function(pattern, x){
     Pkg <- which(pattern==x)
@@ -32,23 +33,29 @@ findSubdir <- function(pkg="^acledr$", wd=getwd(),
     } else pkgParent <- wd
   }
   npkgDir <- length(pkgDir)
-  cat('pkgParent = ', pkgParent, '\n')
-  cat('npkgDir = ', npkgDir, '\n')
-  for(i in seq(1, length=npkgDir)){
-    cat('pkgDir[', i, '] = ', pkgDir[i], '\n')
+  if(TRACE){
+    cat('pkgParent = ', pkgParent, '\n')
+    cat('npkgDir = ', npkgDir, '\n')
+    for(i in seq(1, length=npkgDir)){
+      cat('pkgDir[', i, '] = ', pkgDir[i], '\n')
+    }
   }
 ##
 ## 2. Look for subdir in pkgParent 
 ##
   whichDir <- function(path, pattern, ...){
-    cat('In whichDir, class(path) = ', 
-      paste(class(path), collapse=', '), '\n')
-    if(class(path)!='character'){
-      print(path)
+    if(TRACE){
+      cat('In whichDir, class(path) = ', 
+        paste(class(path), collapse=', '), '\n')
+      if(class(path)!='character'){
+        print(path)
+      }
     }
     Path <- unlist(path)
-    cat('In whichDir, path = ', Path, 
+    if(TRACE){
+      cat('In whichDir, path = ', Path, 
         '; pattern = ', pattern,'\n')
+    }
     if(length(Path)>0){
       Dir <- unlist(dir(Path, all.files = TRUE, ...))
       Subdp <- whichGrep(pattern, Dir)
@@ -57,8 +64,10 @@ findSubdir <- function(pkg="^acledr$", wd=getwd(),
                  full.names = TRUE))[Subdp])
       }
     }
-    cat('whichDir(path=', Path, ', pattern=', pattern, 
-        ') found nothing.\n')
+    if(TRACE){
+      cat('whichDir(path=', Path, ', pattern=', pattern, 
+          ') found nothing.\n')
+    }
     character(0)
   }
   subDir <- whichDir(pkgParent, subdir)
