@@ -35,40 +35,18 @@ Before we do that, we first attempt simpler tasks:
 
 To make everything comparable, we downloaded events and fatalities from ACLED Explorer by country and event type for each month starting with 2021-01 as `*.csv` files. This involved two requests from "ACLED Explorer" for "Event Counts" separate from "Fatality Counts". For each extraction, we requested, (2) "All event types", (3) a custom date range starting with the first day of the first month requested and ending with the last day of the last month requested. We also requested (4) "Select All" regions and (5) countries. (6) We did NOT request "specific Admin1 units". (7) We asked to group the data by country. (8) We did NOT select specific actors or types of actors. But we DID want to see events groups by (9) event type and (10) time period: month. 
 
-We moved these two files in the current working directory and renamed them `acled_aggregated_2021events.csv` and `acled_aggregated_2021fat.csv`, respectively. 
+[Wickham and Bryan, *R Packages* (2ed, sec. 7.3 Raw data file)](https://r-pkgs.org/data.html#sec-data-extdata) recommend putting raw data files for a vignett in an `~inst/extdata` subdirectory of the package. 
 
-These files were 2.5 MB each. For CRAN, ["As a general rule, neither data nor documentation should exceed 5MB"](https://www.thecoatlessprofessor.com/programming/r/size-and-limitations-of-packages-on-cran/). To meet these limits, sample data from 2023-12-01 to 2024-01-31 were extracted to include in the `extdata` directory of the package. 
+There's a problem with this however, because the `ACLED` data extracts, which I renamed `acled_aggregated_2021events.csv` and `acled_aggregated_2021fat.csv`, containing events and fatalities data, respectively, were 2.5 MB each. For CRAN, ["As a general rule, neither data nor documentation should exceed 5MB"](https://www.thecoatlessprofessor.com/programming/r/size-and-limitations-of-packages-on-cran/). 
 
-```{r acledDir}
-#extdata <- pkgload::shim_system.file('extdata', package='acledr')
-# Error: 'shim_system.file' is not an exported object from 
-#        'namespace:pkgload'
-if(require(acledr)){ 
-  acledDir <- fs::path_package('acledr')
-} else acledDir <- ''
+I met these limits by doing two things: 
 
-if((length(acledDir)<1) || (acledDir == '')){ 
-  wd <- getwd()
-  wdList <- strsplit(wd, '/')[[1]]
-  acledri <- which(wdList=='acledr')
-  acledDir <-  do.call(file.path, as.list(wdList[1:acledri]))
-}
-
-acledDir
-```
-
-Got `acledDir`. This is difficult for `*.Rmd` in the vignettes folder. 
+1. Putting these large files in an `extdata` subdirectory of the *parent* of the `acledr` package directory *and* by putting much smaller extracts in `~/acledr/inst/extdata`. These smaller files contained sample data from 2023-12-01 to 2024-01-31.  
+2. Writing a function `findSubdir` to look first for an `extdata` file in the parent of the package directory, then in the package directory itself, and then in an `inst` subdirectory of the package. (Wickham and Bryan suggested functions that were supposed to be able to do this, but I could not make them work. The function I wrote worked for this purpose at least locally and in GitHub Actions.)
 
 ```{r extdata}
-inst <- dir(acledDir, pattern='^inst$', full.names=TRUE)
-if((length(inst)<1) || (inst=='')){
-    extdata <- dir(acledDir, pattern='^extdata$', 
-                 full.names=TRUE)
-} else {
-    extdata <- dir(inst, pattern='^extdata$', 
-                 full.names=TRUE)
-}
-extdata
+library(acledr)
+(extdata <- findSubdir())
 ```
 
 Now find the deaths and events files. 
