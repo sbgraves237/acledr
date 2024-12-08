@@ -119,7 +119,9 @@ findSubdir(pkg='^acledr$', wd=getwd(),
     ' package ', pkg)
   }
 # probably error 
-  (probErr <- findSubdir('^acledr$', '~'))
+  \dontrun{
+    (probErr <- findSubdir('^acledr$', '~'))
+  }
 }    
 \keyword{data}
 \keyword{file}
