@@ -46,15 +46,18 @@ findSubdir <- function(pkg="^acledr$", wd=getwd(),
     if(class(path)!='character'){
       print(path)
     }
-    cat('In whichDir, path = ', path, 
+    Path <- unlist(path)
+    cat('In whichDir, path = ', Path, 
         '; pattern = ', pattern,'\n')
-    Dir <- unlist(dir(path, all.files = TRUE, ...))
-    Subdp <- whichGrep(pattern, Dir)
-    if(length(Subdp)>0){
-      return(unlist(dir(path, all.files = TRUE, 
+    if(length(Path)>0){
+      Dir <- unlist(dir(Path, all.files = TRUE, ...))
+      Subdp <- whichGrep(pattern, Dir)
+      if(length(Subdp)>0){
+        return(unlist(dir(path, all.files = TRUE, 
                  full.names = TRUE))[Subdp])
+      }
     }
-    cat('whichDir(path=', path, ', pattern=', pattern, 
+    cat('whichDir(path=', Path, ', pattern=', pattern, 
         ') found nothing.\n')
     character(0)
   }
