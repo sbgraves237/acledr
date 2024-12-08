@@ -53,7 +53,7 @@ findSubdir <- function(pkg="^acledr$", wd=getwd(),
 ## 3. Look for subdir directly in pkgDir
 ##
   subDir <- vector('list', nPkg)
-  for(i in 1:nPkg){
+  for(i in seq(1, length=nPkg)){
     subDir[[i]] <- whichDir(pkgDir[i], subdir)
     if(length(subDir[[i]])>0)return(subDir[[i]])
   }
@@ -62,7 +62,7 @@ findSubdir <- function(pkg="^acledr$", wd=getwd(),
 ## 
   subDi <- vector('list', nPkg)
   nsubDi <- integer(nPkg)
-  for(i in 1:nPkg){
+  for(i in seq(1, length=nPkg)){
     subDi[[i]] <- whichDir(pkgDir[i], subdir1)
     if((length(subDi[[i]])>0) && (nchar(subDi[[i]])>0)){
       nsubDi[i] <- nchar(subDi[[i]])
