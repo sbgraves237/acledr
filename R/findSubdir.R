@@ -37,6 +37,8 @@ findSubdir <- function(pkg="^acledr$", wd=getwd(),
       return(dir(path, all.files = TRUE, 
                  full.names = TRUE)[Subdp])
     }
+    cat('whichDir(path=', path, ', pattern=', pattern, 
+        ') found nothing.')
     character(0)
   }
   subDir <- whichDir(pkgParent, subdir)
