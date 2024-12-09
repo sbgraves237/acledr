@@ -15,7 +15,7 @@
   \href{https://en.wikipedia.org/wiki/Armed_Conflict_Location_and_Event_Data}{Armed Conflict Location and Event Data} 
   (ACLED) project, with names matching their binary code: 
 
-\tabuler{cl}{
+\tabular{cl}{
   111 \tab \code{ctryMoEv} = counts by country, month, and event type for 2 months only (2023-12 and 2024-01); much more can violate CRAN's size limits\cr
   110 \tab \code{ctryMo} = counts by country and month between 2021-01 and 2024-09.\cr
   101 \tab \code{ctryEv} = counts by country and event type between 2021-01 and 2024-09.\cr
@@ -25,13 +25,13 @@
   001 \tab \code{Ev} = counts by event type between 2021-01 and 2024-09.\cr
 }
 }
-\usage{data("ctryMoEv")}
-\usage{data("ctryMo")}
-\usage{data("ctryEv")}
-\usage{data("ctry")}
-\usage{data("MoEv")}
-\usage{data("Mo")}
-\usage{data("Ev")}
+\usage{data(ctryMoEv)}
+\usage{data(ctryMo)}
+\usage{data(ctryEv)}
+\usage{data(ctry)}
+\usage{data(MoEv)}
+\usage{data(Mo)}
+\usage{data(Ev)}
 \format{
   A \code{\link{data.frame}}s with differing numbers of 
   observations and columns that include all of the following 
@@ -77,9 +77,9 @@
 %%  ~~ possibly secondary sources and usages ~~
 %}
 \examples{
-data("ctryMoEv")
-data("ctry")
-str(ctryMoEV)
+data(ctryMoEv)
+data(ctry)
+str(ctryMoEv)
 str(ctry) 
 }
 \keyword{datasets}
