@@ -45,25 +45,32 @@ I met these limits by doing two things:
 2. Writing a function `findSubdir` to look first for an `extdata` file in the parent of the package directory, then in the package directory itself, and then in an `inst` subdirectory of the package. (Wickham and Bryan suggested functions that were supposed to be able to do this, but I could not make them work. The function I wrote worked for this purpose at least locally and in GitHub Actions.)
 
 On 2024-12-07 GitHub Action was throwing an error on this vignette. To isolate that error, I added a variable `run` with the following acceptable values: 
-- `noSearch` to stop before `dir(extdata)`, which should contain data files to be read. 
-- `noRead` to stop before attempting to read files that were found. 
-- `all` to run the entire vignette. This works on my local computer but not on GitHub Action. 
+1. `noSearch` to stop before searching for `extdata`, which should contain data files to be read. 
+2. `noDir` to stop before looking for `*.csv` files in `extdata`. 
+3. `noRead` to stop before attempting to read `*events.csv` and `*fat.csv` (fatalities) files that were found.
+4. `read` to stop just after reading the files that were found. 
+5. `allButSave` to run the entire vignette except for the final step of saving the datasets created. 
+6. `all` to run the entire vignette. 
+
+With `run` = `noSearch` or `noRead`, the package checks fine both on my local computer and on GitHub. With `run` = any of the other three, the package checks fine locally but fails with GitHub Action on all 5 platforms. 
 
 GitHub Action worked through obtaining `extdata` path to the subdirectory of the `acledr` package with `run = "findExtr"` but failed when actually trying to read such files with `run = "readExtr"` or `"all"`. 
 ```{r extdata}
-run <- c("noSearch", "noRead", "all")[2]
-library(acledr)
-(extdata <- findSubdir())
+run <- c("noSearch", "noDir", "noRead", 'read', "allButSave", "all")[3]
+if(run %in% c("noDir", "noRead", 'read', "allButSave", "all")){
+  library(acledr)
+  (extdata <- findSubdir())
+}
 ```
 
 Now find the deaths and events files. 
 
 ```{r d_e_files}
-if(run != 'noSearch'){
+if(run %in% c("noRead", 'read', "allButSave", "all")){
   csvFiles <- dir(extdata, pattern='\\.csv$')
-  (deathFile <- dir(extdata, pattern='fat\\.csv$', 
-                  full.names = TRUE))
   (eventFile <- dir(extdata, pattern='events\\.csv$', 
+                  full.names = TRUE))
+  (deathFile <- dir(extdata, pattern='fat\\.csv$', 
                   full.names = TRUE))
   if(max(nchar(deathFile))<1){
     stop('deathfile = ', deathFile, ' not found.')
@@ -79,7 +86,8 @@ Let's read these two files and confirm that they are identical except for the la
 **NOTE: This vignettes knits with no apparent errors to this point, but the following `readDat` snippet throws an error in GitHub Action on all platforms: With `run %in% c('noRead', 'all')`, it fails. With `run = 'noSearch'`, GitHub Action works, as of 2024-12-08. 
 
 ```{r readDat}
-if(run %in% c('noRead', 'all')){
+if(run %in% c('read', "allButSave", "all")){
+
   deaths <- read.csv(deathFile)
   events <- read.csv(eventFile)
 
@@ -98,7 +106,7 @@ Then summarize `ctryEv` further
 - and across `Event.Type` to get `ctry`. 
 
 ```{r ctryMoEv}
-if(run == 'all'){ 
+if(run %in% c("allButSave", "all")){
   ctryMoEv <- events
   ctryMoEv$Event.month <- as.Date(events$Event.month)
   (firstMo <- min(ctryMoEv$Event.month))
@@ -107,13 +115,14 @@ if(run == 'all'){
   ctryMoEv$Deaths <- deaths$Fatalities
   ctryMoEv$deathsPerEvent <- (deaths$Fatalities/events$Events)
   str(ctryMoEv)
+  range(ctryMoEv$Event.month)
 }
 ```
 
 Before summarizing, let's compute `nCtries`, `nMonths`, and `nTypes`: 
 
 ```{r factorNobs}
-if(run == 'all'){
+if(run %in% c("allButSave", "all")){
   Ctries <- table(ctryMoEv$Country)
   (nCtries <- length(Ctries))
 
@@ -128,27 +137,11 @@ if(run == 'all'){
 }
 ```
 
-### `ctryEv` <- Sum (`Events`, `Deaths`) by (`Country`, `Event.Type`) across `Event.month`
-
-```{r ctryEv}
-if(run == 'all'){
-  str(Nmo <- table(ctryMoEv$Event.month))
-  table(Nmo)
-
-  library(dplyr)
-  ctryEv <- (ctryMoEv %>% group_by(Country, Event.Type) 
-           %>% summarize(Events=sum(Events), Deaths=sum(Deaths)))
-  ctryEv$DeathsPerEvent <- with(ctryEv, Deaths/Events)
-  dim(ctryEv)
-  head(ctryEv, 2)
-  tail(ctryEv, 2)
-}
-```
-
 ### `ctryMo` <- sum (`Events`, `Deaths`) by (`Country`, `Event.month`) across `Event.Type`
 
 ```{r ctryMo}
-if(run == 'all'){
+if(run %in% c("allButSave", "all")){
+  library(dplyr)
   ctryMo <- (ctryMoEv %>% group_by(Country, Event.month) 
            %>% summarize(Events=sum(Events), Deaths=sum(Deaths)))
   ctryMo$DeathsPerEvent <- with(ctryMo, Deaths/Events)
@@ -158,22 +151,26 @@ if(run == 'all'){
 }
 ```
 
-### `Ev` <- sum (`Events`, `Deaths`) by `Event.Type` 
+### `ctryEv` <- Sum (`Events`, `Deaths`) by (`Country`, `Event.Type`) across `Event.month`
 
-```{r Ev}
-if(run == 'all'){
-  Ev <- (ctryEv %>% group_by(Event.Type) 
+```{r ctryEv}
+if(run %in% c("allButSave", "all")){
+  str(Nmo <- table(ctryMoEv$Event.month))
+  table(Nmo)
+
+  ctryEv <- (ctryMoEv %>% group_by(Country, Event.Type) 
            %>% summarize(Events=sum(Events), Deaths=sum(Deaths)))
-  Ev$DeathsPerEvent <- with(Ev, Deaths/Events)
-  dim(Ev)
-  Ev
+  ctryEv$DeathsPerEvent <- with(ctryEv, Deaths/Events)
+  dim(ctryEv)
+  head(ctryEv, 2)
+  tail(ctryEv, 2)
 }
 ```
 
 ### `ctry` <- sum (`Events`, `Deaths`) by `Country` 
 
 ```{r ctry}
-if(run == 'all'){
+if(run %in% c("allButSave", "all")){
   ctry <- (ctryEv %>% group_by(Country) 
            %>% summarize(Events=sum(Events), Deaths=sum(Deaths)))
   ctry$DeathsPerEvent <- with(ctry, Deaths/Events)
@@ -185,6 +182,46 @@ if(run == 'all'){
 }
 ```
 
+### `MoEv` <- Sum (`Events`, `Deaths`) by (`Event.month`, `Event.Type`) across `Country`
+
+```{r MoEv}
+if(run %in% c("allButSave", "all")){
+  str(Nctry <- table(ctryMoEv$Country))
+  table(Nctry)
+
+  MoEv <- (ctryMoEv %>% group_by(Event.month, Event.Type) 
+           %>% summarize(Events=sum(Events), Deaths=sum(Deaths)))
+  MoEv$DeathsPerEvent <- with(MoEv, Deaths/Events)
+  dim(MoEv)
+  head(MoEv, 2)
+  tail(MoEv, 2)
+}
+```
+
+### `Mo` <- sum (`Events`, `Deaths`) by `Event.month` 
+
+```{r Mo}
+if(run %in% c("allButSave", "all")){
+  Mo <- (ctryMoEv %>% group_by(Event.month) 
+           %>% summarize(Events=sum(Events), Deaths=sum(Deaths)))
+  Mo$DeathsPerEvent <- with(Mo, Deaths/Events)
+  dim(Mo)
+  Mo
+}
+```
+
+### `Ev` <- sum (`Events`, `Deaths`) by `Event.Type` 
+
+```{r Ev}
+if(run %in% c("allButSave", "all")){
+  Ev <- (ctryEv %>% group_by(Event.Type) 
+           %>% summarize(Events=sum(Events), Deaths=sum(Deaths)))
+  Ev$DeathsPerEvent <- with(Ev, Deaths/Events)
+  dim(Ev)
+  Ev
+}
+```
+
 Looks sensible. 
 
 ## Save 
@@ -193,7 +230,14 @@ Save `ACLEDpopGDP`.
 
 ```{r}
 #| label: save
-#save(ACLEDpopGDP, file='ACLEDpopGDP.rda', 
-#     compress=TRUE)
+if(run =="all"){
+  usethis::use_data(ctryMoEv)
+  usethis::use_data(ctryMo)
+  usethis::use_data(ctryEv)
+  usethis::use_data(ctry)
+  usethis::use_data(MoEv)
+  usethis::use_data(Mo)
+  usethis::use_data(Ev)
+}
 ```
 
