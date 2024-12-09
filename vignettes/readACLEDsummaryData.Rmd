@@ -71,7 +71,7 @@ if(max(nchar(eventFile))<1){
 Let's read these two files and confirm that they are identical except for the last column. 
 
 ```{r readDat}
-run <- FALSE
+run <- TRUE
 if(run){
   deaths <- read.csv(deathFile)
   events <- read.csv(eventFile)
