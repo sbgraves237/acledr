@@ -52,7 +52,7 @@ library(acledr)
 Now find the deaths and events files. 
 
 ```{r d_e_files}
-run <- FALSE
+run <- TRUE
 if(run){
 csvFiles <- dir(extdata, pattern='\\.csv$')
 (deathFile <- dir(extdata, pattern='fat\\.csv$', 
@@ -65,6 +65,7 @@ csvFiles <- dir(extdata, pattern='\\.csv$')
 Let's read these two files and confirm that they are identical except for the last column. 
 
 ```{r readDat}
+run <- TRUE
 if(run){
   deaths <- read.csv(deathFile)
   events <- read.csv(eventFile)
