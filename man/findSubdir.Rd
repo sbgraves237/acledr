@@ -11,7 +11,8 @@
 }
 \usage{
 findSubdir(pkg='^acledr$', wd=getwd(), 
-    subdir='^extdata$', subdir1='^inst$')
+    subdir='^extdata$', subdir1='^inst$', 
+    ...)
 }
 \arguments{
   \item{pkg}{ 
@@ -41,6 +42,9 @@ findSubdir(pkg='^acledr$', wd=getwd(),
     search for \code{subdir} if it is not found
     in either the parent of \code{pkg} or in 
     \code{pkg} itself. 
+  }
+  \item{\dots}{
+    optional arguments passed to \code{link{dir}}. 
   }
 }
 \details{
@@ -85,8 +89,13 @@ findSubdir(pkg='^acledr$', wd=getwd(),
 }
 \value{
   A character vector giving the full path to 
-  the directory or directoris found or an 
-  error describing what was not found. 
+  the directory or directories found or one 
+  of three error messages: 
+  \enumerate{
+    \item \code{pkg} not found. 
+    \item \code{subdir1} found but not \code{subdir}.
+    \item Neither \code{subdir} nor \code{subdir1} found.
+  }
 }
 \author{
   Spencer Graves
@@ -107,13 +116,13 @@ findSubdir(pkg='^acledr$', wd=getwd(),
 }
 \examples{
 # Possible multiple matches
-  (Extdata <- findSubdir('acledr'))
+  (Extdata <- findSubdir('acledr', subdir='extdata'))
   if(nchar(Extdata)<1){
     stop('subdir ', subdir, ' not found in', 
     ' package ', pkg)
   }
 # Ensure only one exact match
-  (Extdata1 <- findSubdir('^acledr$'))
+  (Extdata1 <- findSubdir('^acledr$', subdir='^extdata$'))
   if(nchar(Extdata)<1){
     stop('subdir ', subdir, ' not found in', 
     ' package ', pkg)
