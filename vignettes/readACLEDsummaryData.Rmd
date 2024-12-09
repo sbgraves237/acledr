@@ -65,7 +65,7 @@ csvFiles <- dir(extdata, pattern='\\.csv$')
 Let's read these two files and confirm that they are identical except for the last column. 
 
 ```{r readDat}
-run <- FALSE
+run <- TRUE
 if(run){
   deaths <- read.csv(deathFile)
   events <- read.csv(eventFile)
@@ -85,6 +85,7 @@ Then summarize `ctryEv` further
 - and across `Event.Type` to get `ctry`. 
 
 ```{r ctryMoEv}
+run <- FALSE
 if(run){ 
   ctryMoEv <- events
   ctryMoEv$Event.month <- as.Date(events$Event.month)
