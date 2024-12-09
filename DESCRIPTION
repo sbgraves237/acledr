@@ -9,7 +9,7 @@ Authors@R: person(given = "Spencer",
 Author: Spencer Graves [aut, cre]
 Maintainer: Spencer Graves <spencer.graves@effectivedefense.org>
 Depends: R (>= 4.3.0)
-Suggests: Ecfun, Ecdat, knitr, rmarkdown, dplyr, fs, rworldmap, markdown
+Suggests: Ecfun, Ecdat, knitr, rmarkdown, dplyr, fs, rworldmap, markdown, usethis
 VignetteBuilder: knitr
 Description: Merge and analyze data from Armed Conflict Location and Event Data (ACLED) and possibly other sources, e.g., World Bank.
 LazyData: true
