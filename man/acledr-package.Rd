@@ -17,10 +17,11 @@
   
   \enumerate{
     \item {
-      \code{acledr_readACLEDsummarydata}
+      \code{readACLEDsummarydata}
       Access \code{ACLED} summary data, read it into R as 
       a \code{\link{data.frame}}, then save it with a few 
-      summaries as \code{data.frame}s in the package. 
+      summaries as \code{data.frame}s in the package 
+      described in the help file \code{link{acledSum}}.
     }
     \item {
       Create \code{ACLEDctryCode} named character vector
