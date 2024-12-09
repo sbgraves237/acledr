@@ -11,7 +11,7 @@ On 2024-12-02 I was not able to get R CMD check to find
 \code{countrySynonyms}, even though I had it in 
 \code{NAMESPACE}. 
 }
-\usage{data("countrySynonyms")}
+\usage{data(countrySynonyms)}
 \format{
   A data frame with 282 observations on the following 10 variables.
   \describe{
