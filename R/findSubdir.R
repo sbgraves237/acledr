@@ -1,126 +1,98 @@
 findSubdir <- function(pkg="^acledr$", wd=getwd(), 
-                       subdir='^extdata$', 
-                       subdir1='^inst$'){
+        subdir='^extdata$', subdir1='^inst$', ...){
 ##
 ## 1. Find the "pkg" package directory
 ##
-  TRACE <- FALSE
-  wdList <- strsplit(wd, .Platform$file.sep)[[1]]
-  whichGrep <- function(pattern, x){
-    Pkg <- which(pattern==x)
-    if(length(Pkg)<1){
-      Pkg <- grep(pattern, x)
-    }
-    Pkg
+  if(wd=="~"){
+    cat("Do you really want to search the entire hard drive?", 
+        "\n(<ctrl-c> if no.)")
   }
-  Pkg <- whichGrep(pkg, wdList)
-  nPkg <- length(Pkg)
-  if(nPkg<1){
-#  pkg not found embedded in wd. Might it be a subdirectory?       
-    pkgDir <- unlist(dir(wd, pattern=pkg, 
-            all.files=TRUE, full.names=TRUE))
-    if(length(pkgDir)<1)pkgDir <- wd 
-    pkgParent <- wd 
-  } else {
-    pkgDir <- character(nPkg)
-    for(i in 1:nPkg){
-      pkgDir[i] <-  do.call(file.path, 
-                    as.list(wdList[1:Pkg[i]]))
-    }
-    if(Pkg[1]>1){
-        pkgParent<- do.call(file.path, 
-                as.list(wdList[1:(Pkg[1]-1)]))
-    } else pkgParent <- wd
+  dirWd. <- dir(wd, recursive = TRUE, 
+                full.names=TRUE, ...)
+  dirWd <- strsplit(dirWd., 
+            .Platform$file.sep)
+  nDirr <- length(dirWd)
+#  
+#  whichGrep <- function(pattern, x){
+#    Pkg <- which(pattern==x)
+#    if(length(Pkg)<1){
+#      Pkg <- grep(pattern, x)
+#    }
+#    Pkg
+#  }
+#
+  whichLvl <- lapply(dirWd, function(x){
+                grep(pkg, x)
+  })
+  maxLvl <- sapply(whichLvl, function(x){
+      if(length(x)>0)max(x) else 0 
+  })
+##  
+## 2. discard paths in which pkg not found 
+##  
+  foundInWD <- dirWd[maxLvl>0]
+  foundLvl <- whichLvl[maxLvl>0]
+  foundMaxLvl <- maxLvl[maxLvl>0]
+  nFound <- length(foundInWD)
+  if(nFound<1){
+    stop('pkg = ', pkg, ' not found in wd = ', 
+         wd)
   }
-  npkgDir <- length(pkgDir)
-  if(TRACE){
-    cat('pkgParent = ', pkgParent, '\n')
-    cat('npkgDir = ', npkgDir, '\n')
-    for(i in seq(1, length=npkgDir)){
-      cat('pkgDir[', i, '] = ', pkgDir[i], '\n')
-    }
-  }
-##
-## 2. Look for subdir in pkgParent 
-##
-  whichDir <- function(path, pattern, ...){
-    if(TRACE){
-      cat('In whichDir, class(path) = ', 
-        paste(class(path), collapse=', '), '\n')
-      if(class(path)!='character'){
-        print(path)
-      }
-    }
-    Path <- unlist(path)
-    if(TRACE){
-      cat('In whichDir, path = ', Path, 
-        '; pattern = ', pattern,'\n')
-    }
-    if(length(Path)>0){
-      Dir <- unlist(dir(Path, all.files = TRUE, ...))
-      Subdp <- whichGrep(pattern, Dir)
-      if(length(Subdp)>0){
-        return(unlist(dir(Path, all.files = TRUE, 
-                 full.names = TRUE))[Subdp])
-      }
-    }
-    if(TRACE){
-      cat('whichDir(path=', Path, ', pattern=', pattern, 
-          ') found nothing.\n')
-    }
-    character(0)
-  }
-  subDir <- whichDir(pkgParent, subdir)
-  if(length(subDir)>0)return(subDir)
-##
-## 3. Look for subdir directly in pkgDir
-##
-  subDir <- vector('list', nPkg)
-  for(i in seq(1, length=nPkg)){
-    subDir[[i]] <- whichDir(pkgDir[i], subdir)
-    if(length(subDir[[i]])>0)return(subDir[[i]])
-  }
-##
-## 4. Look for subdir1 in pkgDir
 ## 
-  subDi <- vector('list', nPkg)
-  nsubDi <- integer(nPkg)
-  for(i in seq(1, length=nPkg)){
-    subDi[[i]] <- whichDir(pkgDir[i], subdir1)
-    if((length(subDi[[i]])>0) && (nchar(subDi[[i]])>0)){
-      nsubDi[i] <- nchar(subDi[[i]])
+## 3. Find parents and search in them for subdir
+##  
+  subdirDir <- character(0)
+  for(i in seq(1, length=nFound)){
+    for(j in foundLvl[[i]]){
+      pkgParent <- paste(foundInWD[[i]][1:(j-1)], 
+                collapse=.Platform$file.sep)
+      grepInParent <- dir(pkgParent, pattern=subdir, 
+                         full.names = TRUE, ...)
+      subdirDir <- c(subdirDir, grepInParent)
     }
   }
-  if(sum(nsubDi)<1){
-    ermsg2 <- paste0('Subdirectory ', subdir, 
-      ' not found in either the parent of package ', 
-      pkg, ' nor directly in ', pkg, ' itself.\n', 
-      'In addition, subdir1 (', subdir1, 
-      ') not found.\n')
-    cat('in findSubdir with pkg = ', pkg, ',\n')
-    cat('  wd = ', wd, ',\n')
-    print(wdList)
-    cat('  subdir = ', subdir, ',\n')
-    cat('  and subdir1 = ', subdir1, ',\n')
-    stop(ermsg2)
+  if(length(subdirDir)>0)return(unique(subdirDir))
+##
+## 4. Look for subdir in pkg 
+##
+  for(i in seq(1, length=nFound)){
+    for(j in foundLvl[[i]]){
+      pkgDir <- paste(foundInWD[[i]][1:j], 
+                  collapse=.Platform$file.sep)
+      grepInPkg <- dir(pkgDir, pattern=subdir, 
+                       full.names = TRUE, ...)
+      subdirDir <- c(subdirDir, grepInPkg)
+    }
   }
+  if(length(subdirDir)>0)return(unique(subdirDir))
 ##
-## 5. look for subdir in subDi
+## 5. Look for subdir in subdir1 in pkgDir
 ##
-  subDir <- whichDir(subDi, subdir)
-  if(length(subDir)>0){
-    return(subDir)
-  } else {
-    ermsg3 <- paste0('Subdirectory ', subdir, 
-      ' not found associated with package ', pkg, 
-      ', though subdir1 (', subdir1, ') was [', 
-      subDi, ']\n')
-    stop(ermsg3)
+  subdir1Found <- FALSE 
+  for(i in seq(1, length=nFound)){
+    for(j in foundLvl[[i]]){
+      pkgDir <- paste(foundInWD[[i]][1:j], 
+                collapse=.Platform$file.sep)
+      subd1InPkg <- dir(pkgDir, pattern=subdir1, 
+                       full.names = TRUE, ...)
+      if(length(subd1InPkg)>0){
+        subdir1Found <- TRUE
+        for(sbd1 in subd1InPkg){
+          grepIn1 <- dir(sbd1, pattern=subdir, 
+                       full.names=TRUE,...)
+          subdirDir <- c(subdirDir, grepIn1)
+        }
+      }
+    }
   }
-##
-## 5. Control should never get here.
-##    It should already have returned something 
-##    or an error message.   
-##
-  stop('Logic error in function findSubdir')
+  if(length(subdirDir)<1){
+    if(subdir1Found){
+      stop('subdir1 = ', subdir1, 'found but not ', 
+           'subdir = ', subdir)
+    } else {
+      stop('Neither subdir = ', subdir, 'nor subdir1 =', 
+           subdir1,' found.')
+    }
+  }
+  unique(subdirDir)
 }
