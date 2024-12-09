@@ -25,13 +25,15 @@
   001 \tab \code{Ev} = counts by event type between 2021-01 and 2024-09.\cr
 }
 }
-\usage{data(ctryMoEv)}
-\usage{data(ctryMo)}
-\usage{data(ctryEv)}
-\usage{data(ctry)}
-\usage{data(MoEv)}
-\usage{data(Mo)}
-\usage{data(Ev)}
+\usage{
+  data(ctryMoEv)
+  data(ctryMo)
+  data(ctryEv)
+  data(ctry)
+  data(MoEv)
+  data(Mo)
+  data(Ev)
+}
 \format{
   A \code{\link{data.frame}}s with differing numbers of 
   observations and columns that include all of the following 
