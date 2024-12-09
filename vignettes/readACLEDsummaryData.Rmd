@@ -59,13 +59,19 @@ csvFiles <- dir(extdata, pattern='\\.csv$')
                   full.names = TRUE))
 (eventFile <- dir(extdata, pattern='events\\.csv$', 
                   full.names = TRUE))
+if(max(nchar(deathFile))<1){
+  stop('deathfile = ', deathFile, ' not found.')
+}
+if(max(nchar(eventFile))<1){
+  stop('eventfile = ', eventFile, ' not found.')
+}
 }
 ```
 
 Let's read these two files and confirm that they are identical except for the last column. 
 
 ```{r readDat}
-run <- TRUE
+run <- FALSE
 if(run){
   deaths <- read.csv(deathFile)
   events <- read.csv(eventFile)
