@@ -52,20 +52,25 @@ library(acledr)
 Now find the deaths and events files. 
 
 ```{r d_e_files}
+run <- FALSE
+if(run){
 csvFiles <- dir(extdata, pattern='\\.csv$')
 (deathFile <- dir(extdata, pattern='fat\\.csv$', 
                   full.names = TRUE))
 (eventFile <- dir(extdata, pattern='events\\.csv$', 
                   full.names = TRUE))
+}
 ```
 
 Let's read these two files and confirm that they are identical except for the last column. 
 
 ```{r readDat}
-deaths <- read.csv(deathFile)
-events <- read.csv(eventFile)
+if(run){
+  deaths <- read.csv(deathFile)
+  events <- read.csv(eventFile)
 
-all.equal(deaths[-4], events[-4])
+  all.equal(deaths[-4], events[-4])
+}
 ```
 
 Looks good. Let's combine them to create `ctryMoEv`. We then summarize those 
@@ -79,79 +84,91 @@ Then summarize `ctryEv` further
 - and across `Event.Type` to get `ctry`. 
 
 ```{r ctryMoEv}
-ctryMoEv <- events
-ctryMoEv$Event.month <- as.Date(events$Event.month)
-(firstMo <- min(ctryMoEv$Event.month))
-(lastMo <- max(ctryMoEv$Event.month))
+if(run){ 
+  ctryMoEv <- events
+  ctryMoEv$Event.month <- as.Date(events$Event.month)
+  (firstMo <- min(ctryMoEv$Event.month))
+  (lastMo <- max(ctryMoEv$Event.month))
 
-ctryMoEv$Deaths <- deaths$Fatalities
-ctryMoEv$deathsPerEvent <- (deaths$Fatalities/events$Events)
-str(ctryMoEv)
+  ctryMoEv$Deaths <- deaths$Fatalities
+  ctryMoEv$deathsPerEvent <- (deaths$Fatalities/events$Events)
+  str(ctryMoEv)
+}
 ```
 
 Before summarizing, let's compute `nCtries`, `nMonths`, and `nTypes`: 
 
 ```{r factorNobs}
-Ctries <- table(ctryMoEv$Country)
-(nCtries <- length(Ctries))
+if(run){
+  Ctries <- table(ctryMoEv$Country)
+  (nCtries <- length(Ctries))
 
-Months <- table(ctryMoEv$Event.month)
-(nMonths <- length(Months))
+  Months <- table(ctryMoEv$Event.month)
+  (nMonths <- length(Months))
 
-Types <- table(ctryMoEv$Event.Type)
-(nTypes <- length(Types))
+  Types <- table(ctryMoEv$Event.Type)
+  (nTypes <- length(Types))
 
-(Nobs <- nrow(ctryMoEv))
-all.equal(Nobs, nCtries*nMonths*nTypes )
+  (Nobs <- nrow(ctryMoEv))
+  all.equal(Nobs, nCtries*nMonths*nTypes )
+}
 ```
 
 ### `ctryEv` <- Sum (`Events`, `Deaths`) by (`Country`, `Event.Type`) across `Event.month`
 
 ```{r ctryEv}
-str(Nmo <- table(ctryMoEv$Event.month))
-table(Nmo)
+if(run){
+  str(Nmo <- table(ctryMoEv$Event.month))
+  table(Nmo)
 
-library(dplyr)
-ctryEv <- (ctryMoEv %>% group_by(Country, Event.Type) 
+  library(dplyr)
+  ctryEv <- (ctryMoEv %>% group_by(Country, Event.Type) 
            %>% summarize(Events=sum(Events), Deaths=sum(Deaths)))
-ctryEv$DeathsPerEvent <- with(ctryEv, Deaths/Events)
-dim(ctryEv)
-head(ctryEv, 2)
-tail(ctryEv, 2)
+  ctryEv$DeathsPerEvent <- with(ctryEv, Deaths/Events)
+  dim(ctryEv)
+  head(ctryEv, 2)
+  tail(ctryEv, 2)
+}
 ```
 
 ### `ctryMo` <- sum (`Events`, `Deaths`) by (`Country`, `Event.month`) across `Event.Type`
 
 ```{r ctryMo}
-ctryMo <- (ctryMoEv %>% group_by(Country, Event.month) 
+if(run){
+  ctryMo <- (ctryMoEv %>% group_by(Country, Event.month) 
            %>% summarize(Events=sum(Events), Deaths=sum(Deaths)))
-ctryMo$DeathsPerEvent <- with(ctryMo, Deaths/Events)
-dim(ctryMo)
-head(ctryMo, 2)
-tail(ctryMo, 2)
+  ctryMo$DeathsPerEvent <- with(ctryMo, Deaths/Events)
+  dim(ctryMo)
+  head(ctryMo, 2)
+  tail(ctryMo, 2)
+}
 ```
 
 ### `Ev` <- sum (`Events`, `Deaths`) by `Event.Type` 
 
 ```{r Ev}
-Ev <- (ctryEv %>% group_by(Event.Type) 
+if(run){
+  Ev <- (ctryEv %>% group_by(Event.Type) 
            %>% summarize(Events=sum(Events), Deaths=sum(Deaths)))
-Ev$DeathsPerEvent <- with(Ev, Deaths/Events)
-dim(Ev)
-Ev
+  Ev$DeathsPerEvent <- with(Ev, Deaths/Events)
+  dim(Ev)
+  Ev
+}
 ```
 
 ### `ctry` <- sum (`Events`, `Deaths`) by `Country` 
 
 ```{r ctry}
-ctry <- (ctryEv %>% group_by(Country) 
+if(run){
+  ctry <- (ctryEv %>% group_by(Country) 
            %>% summarize(Events=sum(Events), Deaths=sum(Deaths)))
-ctry$DeathsPerEvent <- with(ctry, Deaths/Events)
-ctry <- as.data.frame(ctry)
-rownames(ctry) <- ctry$Country
-dim(ctry)
-head(ctry, 2)
-tail(ctry, 2)
+  ctry$DeathsPerEvent <- with(ctry, Deaths/Events)
+  ctry <- as.data.frame(ctry)
+  rownames(ctry) <- ctry$Country
+  dim(ctry)
+  head(ctry, 2)
+  tail(ctry, 2)
+}
 ```
 
 Looks sensible. 
