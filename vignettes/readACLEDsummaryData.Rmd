@@ -1,7 +1,7 @@
 ---
 title: "Read ACLED summary data"
 author: "Spencer Graves"
-date: "2024-12-06"
+date: "2024-12-09"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteEngine{knitr::knitr}
@@ -51,7 +51,7 @@ On 2024-12-07 GitHub Action was throwing an error on this vignette. To isolate t
 
 GitHub Action worked through obtaining `extdata` path to the subdirectory of the `acledr` package with `run = "findExtr"` but failed when actually trying to read such files with `run = "readExtr"` or `"all"`. 
 ```{r extdata}
-run <- c("noSearch", "noRead", "all")[3]
+run <- c("noSearch", "noRead", "all")[2]
 library(acledr)
 (extdata <- findSubdir())
 ```
