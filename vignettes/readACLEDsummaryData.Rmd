@@ -65,7 +65,7 @@ csvFiles <- dir(extdata, pattern='\\.csv$')
 Let's read these two files and confirm that they are identical except for the last column. 
 
 ```{r readDat}
-run <- TRUE
+run <- FALSE
 if(run){
   deaths <- read.csv(deathFile)
   events <- read.csv(eventFile)
