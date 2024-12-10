@@ -106,7 +106,7 @@ if(run %in% c('read', "allButSave", "all")){
   deaths <- read.csv(deathFile[ndF])
   
   nef <- length(eventFile)
-  if(edF>1){
+  if(neF>1){
     cat('more than one eventFile:\n', 
         paste(eventFile, collapse='\n'), 
         '\nusing the last one.')
