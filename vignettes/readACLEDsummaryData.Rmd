@@ -56,7 +56,7 @@ With `run` = `noSearch` or `noRead`, the package checked fine both on my local c
 
 GitHub Action worked through obtaining `extdata` path to the subdirectory of the `acledr` package with `run = "findExtr"` but failed when actually trying to read such files with `run = "readExtr"` or `"all"`. 
 ```{r extdata}
-run <- c("noSearch", "noDir", "noRead", 'read', "allButSave", "all")[3]
+run <- c("noSearch", "noDir", "noRead", 'read', "allButSave", "all")[5]
 if(run %in% c("noDir", "noRead", 'read', "allButSave", "all")){
   library(acledr)
   (extdata <- findSubdir())
@@ -67,8 +67,10 @@ Now find the deaths and events files.
 
 ```{r d_e_files}
 if(run %in% c("noRead", 'read', "allButSave", "all")){
-  csvFiles <- dir(extdata, pattern='\\.csv$')
-  
+  (csvFiles. <- dir(extdata, pattern='\\.csv$'))
+  (csvFiles <- dir(extdata, pattern='\\.csv$', 
+                   full.names = TRUE))
+
   if((length(csvFiles)<1) || (max(nchar(csvFiles)<1))){
     stop('No csv files found in extdata = ',
          extdata)
