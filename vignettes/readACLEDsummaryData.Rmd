@@ -97,8 +97,21 @@ Let's read these two files and confirm that they are identical except for the la
 
 ```{r readDat}
 if(run %in% c('read', "allButSave", "all")){
-  deaths <- read.csv(deathFile)
-  events <- read.csv(eventFile)
+  ndF <- length(deathFile)
+  if(ndF>1){
+    cat('more than one deathFile:\n', 
+        paste(deathFile, collapse='\n'), 
+        '\nusing the last one.')
+  }
+  deaths <- read.csv(deathFile[ndF])
+  
+  nef <- length(eventFile)
+  if(edF>1){
+    cat('more than one eventFile:\n', 
+        paste(eventFile, collapse='\n'), 
+        '\nusing the last one.')
+  }
+  events <- read.csv(eventFile[neF])
 }
 ```
 
