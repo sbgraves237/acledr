@@ -12,6 +12,14 @@ findSubdir <- function(pkg="^acledr$", wd=getwd(),
   dirWd <- strsplit(dirWd., 
             .Platform$file.sep)
   nDirr <- length(dirWd)
+#
+  grepDir <- function(path='.', pattern=NULL, ...){
+    short <- dir(path, pattern=NULL, ...)
+    long <- dir(path, pattern=NULL, full.names = TRUE, ...)
+    names(long) <- short
+    g <- grep(pattern, short)
+    long[g]
+  }
 #  
 #  whichGrep <- function(pattern, x){
 #    Pkg <- which(pattern==x)
@@ -46,12 +54,13 @@ findSubdir <- function(pkg="^acledr$", wd=getwd(),
     for(j in foundLvl[[i]]){
       pkgParent <- paste(foundInWD[[i]][1:(j-1)], 
                 collapse=.Platform$file.sep)
-      grepInParent <- dir(pkgParent, pattern=subdir, 
-                         full.names = TRUE, ...)
+      grepInParent <- grepDir(pkgParent, pattern=subdir, 
+                              ...)
       subdirDir <- c(subdirDir, grepInParent)
     }
   }
-  if(length(subdirDir)>0)return(unique(subdirDir))
+  if(length(subdirDir)>0)return(
+        unique(as.character(subdirDir)))
 ##
 ## 4. Look for subdir in pkg 
 ##
@@ -59,12 +68,13 @@ findSubdir <- function(pkg="^acledr$", wd=getwd(),
     for(j in foundLvl[[i]]){
       pkgDir <- paste(foundInWD[[i]][1:j], 
                   collapse=.Platform$file.sep)
-      grepInPkg <- dir(pkgDir, pattern=subdir, 
-                       full.names = TRUE, ...)
+      grepInPkg <- grepDir(pkgDir, pattern=subdir, 
+                            ...)
       subdirDir <- c(subdirDir, grepInPkg)
     }
   }
-  if(length(subdirDir)>0)return(unique(subdirDir))
+  if(length(subdirDir)>0)return(
+          unique(as.character(subdirDir)))
 ##
 ## 5. Look for subdir in subdir1 in pkgDir
 ##
@@ -73,8 +83,13 @@ findSubdir <- function(pkg="^acledr$", wd=getwd(),
     for(j in foundLvl[[i]]){
       pkgDir <- paste(foundInWD[[i]][1:j], 
                 collapse=.Platform$file.sep)
-      subd1InPkg <- dir(pkgDir, pattern=subdir1, 
-                       full.names = TRUE, ...)
+      pkgDir. <- dir(pkgDir)
+      pkgDir.. <- dir(pkgDir, full.names = TRUE, 
+                      ...)
+      
+      subd1InPkg. <- grep(subdir1, pkgDir.) 
+      subd1InPkg <- pkgDir..[subd1InPkg.] 
+
       if(length(subd1InPkg)>0){
         subdir1Found <- TRUE
         for(sbd1 in subd1InPkg){
