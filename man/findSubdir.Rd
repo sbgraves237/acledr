@@ -130,7 +130,7 @@ findSubdir(pkg='^acledr$', wd=getwd(),
 # Check with an installed version of acledr,
 # if it has already been installed, e.g., with 
 # R CMD install
-  acledPath<-path.package('acledr', quiet=TRUE)
+  (acledPath<-path.package('acledr', quiet=TRUE))
   if(!is.null(acledPath)){
     (extdataPkg <- findSubdir(wd=acledPath))
   }
