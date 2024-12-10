@@ -1,0 +1,198 @@
+---
+title: "Read World Bank data"
+author: "Spencer Graves"
+date: "2024-12-10"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteEngine{knitr::knitr}
+  %\VignetteIndexEntry{ACLEDctryCode}
+  %\usepackage[UTF-8]{inputenc}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+
+This vignette reads an `*.xlsx` file of World Bank data containing population and  national income (Gross Domestic Product, `GDP`) per capita (`GDPpc`) both nominal and at purchasing power parity (`PPP`) adjusted for inflation (`GDPpcn` and `GDPpcp`). We will ultimely want `GDP`, which we can get by multiplying population by `GDPpc`. 
+
+Ideally, we'd like these numbers like these by month for the entire range of `ACLED` data. 
+
+A 2024-10-28 email from the ACLED Access Team recommended [the World Bank's open data portal](https://data.worldbank.org/). From there, I could not easily find how to get what I wanted by country and year, let alone by month. 
+
+I got something by clicking [DataBank](https://databank.worldbank.org/home.aspx). From there, I clicked on ["Population, total"](https://databank.worldbank.org/indicator/SP.POP.TOTL/1ff4a498/Popular-Indicators) on the right under "What's popular". This displayed numbers by country and year from 2008 to 2015. I clicked, "Add Time". From there I "Unselect all" then selected 2020, 2021, 2022, and 2023. Then I clicked "x" in the upper right and "Apply Changes". 
+
+Then I clicked "Add Series". From there I found that many series I did not want were selected, so I clicked "Unselect all", then selected "GDP per capita (constant 2015 US$)", "GDP per capita, PPP (constant 2021 international $)" and "Population, total". Then I clicked "x" in the upper right and "Apply Changes" as before. 
+
+Then I clicked "Download options" and selected "Excel". That downloaded a file named `P_Popular Indicators.xlsx`, which I moved to the working directory and changed the name by adding the current data in compressed ISO 8601 format as 20231113. 
+
+I opened `P_Popular Indicators20231113.xlsx` and found a tab for "Series - Metadata". This included in columns C and D "GDP per capita (constant 2015 US$)", "GDP per capita, PPP (constant 2021 international $)", and "Total population ... are midyear estimates". 
+
+On 2024-12-07 GitHub Action was throwing an error on another vignette. To isolate that error, I added a variable `run` with the following acceptable values: 
+1. `noSearch` to stop before searching for `extdata`, which should contain data files to be read. 
+2. `noDir` to stop before looking for raw data files in `extdata`. 
+3. `noRead` to stop before attempting to read desired files that were found.
+4. `read` to stop just after reading the files that were found. 
+5. `allButSave` to run the entire vignette except for the final step of saving the datasets created. 
+6. `all` to run the entire vignette. 
+
+With `run` = `noSearch` , `noDir`, or `noRead`, the package checked fine both on my local computer and on GitHub. With `run` = any of the other three, the package checked fine locally but failed with GitHub Action on all 5 platforms. 
+
+GitHub Action worked through obtaining `extdata` path to the subdirectory of the `acledr` package with `run = "findExtr"` but failed when actually trying to read such files with `run = "readExtr"` or `"all"`. 
+
+```{r extdata}
+run <- c("noSearch", "noDir", "noRead", 'read', "allButSave", "all")[3]
+if(run %in% c("noDir", "noRead", 'read', "allButSave", "all")){
+  library(acledr)
+  (extdata <- findSubdir())
+}
+```
+
+Now find the World Bank data. 
+
+```{r d_e_files}
+if(run %in% c("noRead", 'read', "allButSave", "all")){
+  (xlsFiles <- dir(extdata, pattern='\\.xlsx$'))
+
+  if((length(xlsFiles)<1) || (max(nchar(xlsFiles)<1))){
+    stop('No xlsFiles found in extdata = ',
+         extdata)
+  }
+
+  (WBfiles <- grep('^P_', xlsFiles, value=TRUE))
+  nWBfiles <- length(WBfiles)
+  if((nWBfiles<1) || (max(nchar(WBfiles)<1))){
+    stop('No WBfiles found in extdata xlsFiles = ',
+         paste(xlsFiles, collapse=', '))
+  }
+  if(nWBfiles>1){
+    WBfile <- WBfiles[nWBfiles]
+    cat('length(WBfiles) = ', nWBfiles, 
+        ' > 1; using the last one: ', 
+        WBfile, '\n')
+  } else WBfile <- WBfiles
+}
+```
+
+Let's read that and skim the contents.  
+
+```{r readDat}
+if(run %in% c('read', "allButSave", "all")){
+  WorldBankData <- openxlsx2::read_xlsx(WBfile, 
+                           sheet="Data")
+  tail(WorldBankData, 7)
+}
+```
+
+The last 5 rows are NOT "data". We need to delete those. 
+
+Let's give the column names legal names. 
+
+```{r fixNames}
+if(run %in% c("allButSave", "all")){
+  WBnames <- names(WorldBankData)
+  WBnames2 <- c('Series', 'SeriesCode', 'Country', 
+              'CtryCode', paste0('YR', 2020:2023))
+  cbind(WBnames, WBnames2)
+
+  WBdat. <- head(WorldBankData, -5)
+  names(WBdat.) <- WBnames2
+  str(WBdat.)
+}
+```
+
+Oops: The "numbers" in YR2020, ... YR2023 are actually characters. Convert them to actual numbers. 
+
+```{r WB2num}
+if(run %in% c("allButSave", "all")){
+  WBdat <- WBdat.
+  nWB <- nrow(WBdat)
+  WBna <- vector("list", 4)
+  names(WBna) <- names(WBdat)[5:8]
+  for(i in 5:8){
+    WBdat[[i]] <- as.numeric(WBdat.[[i]])
+    WBna[[i-4]] <- (is.na(WBdat[[i]]))
+  }
+
+  sapply(WBna, sum)
+  WBna. <- as.matrix(as.data.frame(WBna))
+  crossprod(WBna.)
+}
+```
+
+This says that any country that has a certain variable for one year in 2020:2023 has it for all previous years but not necessarily for all succeeding years in that range. There are 30 (Country, Series) combinations that are missing for all years in that range. Another 1 is missing for the last three of those years but not the first. Another 9 are missing for the last two of those years but not both of the first two. And another 25 are missing for 2023 but not all of the 2020:2022: 
+
+
+```{r NActries}
+if(run %in% c("allButSave", "all")){
+  names(WBna[1])
+  (NActries <- with(WBdat[WBna[[1]], ], table(Country, SeriesCode)))
+  (nNAs <- colSums(NActries))
+#with(WBdat[WBna[[4]], ], table(Country, SeriesCode))
+} else nNAs <- Inf
+```
+
+For `r nNAs[1]` countries, we are missing both `NY.GDP.PCAP.KD` and `NY.GDP.PCAP.PP.KD`: 
+
+* `NY.GDP.PCAP.KD` = `GDP per capita (constant 2015 US$)`. Below we will call this `GDPpcn` -- "n" = nominal, i.e., at current exchange rates. 
+* `NY.GDP.PCAP.PP.KD` = "GDP per capita, PPP (contant 2021 international $)`. Below we will refer to this as `GDPpcp` -- "p" = purchasing power parity, `PPP`, that attempts to adjust for local cost of living. 
+
+We would expect that `GDPpcp` might work better in statistical models of conflict. If we want to fund an intervention with money from outside a country in conflict, we will need `GDPpcn` to estimate how much money might be required for any such proposed interventions. 
+
+As noted below, where only one `GDPpc` figure is available, we will use it for both purposes, assuming it is reasonably close. 
+
+Add `avg` to `WBdat`. 
+
+```{r avg}
+if(run %in% c("allButSave", "all")){
+  WBdat$avg <- rowMeans(WBdat[5:8], na.rm=TRUE)
+  (nNA <- sum(is.na(WBdat$avg)))
+} else nNA <- Inf
+```
+
+`r nNA` missing values. As noted above, 11 are missing `NY.GDP.PCAP.KD` and another 8 are also missing `NY.GDP.PCAP.PP.KD`: total 19 missing `NY.GDP.PCAP.PP.KD`. 11 + 19 = 30.  
+
+We are missing `GDP` per capita (constant 2015 US$) for 11 countries and `GDP` per capita, `PPP` (constant 2021 international $) for 19, but we have population for all. 
+
+Check `Series`. 
+
+```{r tableSeries}
+if(run %in% c("allButSave", "all")){
+  (tableSeries <- with(WBdat, table(Series, SeriesCode)))
+}
+```
+
+Good: `SeriesCode` gives coded names for `Series`; the codes do not allow embedded spaces and probably provide information not contained in the more superficially readable `Series`. 
+
+Let's do the same for `WBdat` `Country` and `CtryCode`:
+
+```{r CtryCodeChk}
+if(run %in% c("allButSave", "all")){
+  dim(Ctry_code <-  with(WBdat, table(Country, CtryCode)))
+  sum(Ctry_code!=0)
+}
+```
+
+Good: There are 217 `Country` names, matched with `CtryCode`s. 
+
+```{r  CtryCode}
+if(run %in% c("allButSave", "all")){
+  str(WBctryCode <- WBdat[1:217, 3:4])
+
+  table(nchar(WBctryCode[, 2]))
+}
+```
+
+Good: all `CtryCode`s are 3 characters. 
+
+## Save 
+
+Save `WBdat`.
+
+```{r save}
+if(run =="all"){
+  usethis::use_data(WBdat)
+}
+```
+
