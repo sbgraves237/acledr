@@ -17,30 +17,33 @@
   
   \enumerate{
     \item {
-      \code{readACLEDsummarydata}
+      \code{readACLEDsummarydata}: 
       Access \code{ACLED} summary data, read it into R as 
       a \code{\link{data.frame}}, then save it with a few 
       summaries as \code{data.frame}s in the package 
       described in the help file \code{link{acledSum}}.
     }
     \item {
+      \code{readWorldBankData}: Access data downlaoded 
+      from the World Bank for analysis with \code{ACLED}
+      data, read and save it as a dataset called 
+      \code{WBdat} associated with this \code{acledr}
+      package. 
+    }
+    \item {
       Create \code{ACLEDctryCode} named character vector
       to facilitate translation between the "country" or 
       geographic entity included in the \code{ACLED} 
       summary data and the corresponding 3-letter 
-      \href{https://en.wikipedia.org/wiki/List_of_ISO_3166_country_codes}{ISO 3166 country code}.
-    }
-    \item {
-      Read and save a World Bank data extract and save
-      as \code{WBdat}. 
+      \href{https://en.wikipedia.org/wiki/List_of_ISO_3166_country_codes}{ISO 3166 country code}, 
+      which can further be used to merge ACLED data with 
+      data from other sources, e.g., World Bank, World 
+      Health Organization, etc. 
     }
     \item {
       Merge various \code{ACLED} data sets with 
-      \code{WBdat} and save for subsequent analysis. 
-    }
-    \item {
-      Analyze the merger of \code{ACLED} and 
-      \code{WB} data. 
+      \code{WBdat}, do simple analyses and save for 
+      subsequent analysis. 
     }
   }
   
