@@ -44,10 +44,10 @@
     }
   }
   
-  \code{acledr} version 0.0-1 only contains a 
-  framework to which the vignettes just enumerated 
-  will be added. Subsequent versions will likely 
-  contain more of what is being planned here. 
+  \code{acledr} version 0.0-2 includes the first 
+  of the 5 R Markdown vignettes just outlined and 
+  the datasets created by it. Future versions 
+  will contain more of these vignettes. 
 }
 %\section{Usage for package building}{
 %  The \dQuote{Rcpp-package} vignette documents how to use Rcpp in client packages.
