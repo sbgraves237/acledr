@@ -121,7 +121,7 @@ if(run %in% c("allButSave", "all")){
 }
 ```
 
-Looks good. Let's combine them to create `ctryMoEv`. We then summarize those 
+Looks good. Let's combine them to create `ctryMoEv`. We then summarize those: 
 
 - over `Event.month` to create `ctryEv` 
 - and across `Event.Type` to create `ctryMo`. 
