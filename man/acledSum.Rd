@@ -35,7 +35,7 @@
   data(Ev)
 }
 \format{
-  A \code{\link{data.frame}}s with differing numbers of 
+  \code{\link{data.frame}}s with differing numbers of 
   observations and columns that include all of the following 
   (for \code{ctryMoEv}) or some subset (for all others): 
   \describe{
