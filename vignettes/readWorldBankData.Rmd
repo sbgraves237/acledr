@@ -15,7 +15,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Introduction
 
-This vignette reads an `*.xlsx` file of World Bank data containing population and  national income (Gross Domestic Product, `GDP`) per capita (`GDPpc`) both nominal and at purchasing power parity (`PPP`) adjusted for inflation (`GDPpcn` and `GDPpcp`). We will ultimely want `GDP`, which we can get by multiplying population by `GDPpc`. 
+This vignette reads an `*.xlsx` file of World Bank data containing population and  national income (Gross Domestic Product, `GDP`) per capita (`GDPpc`) both nominal and at purchasing power parity (`PPP`) adjusted for inflation (`GDPpcn` and `GDPpcp`). We will ultimately want `GDP`, which we can get by multiplying population by `GDPpc`. 
 
 Ideally, we'd like these numbers like these by month for the entire range of `ACLED` data. 
 
@@ -25,7 +25,7 @@ I got something by clicking [DataBank](https://databank.worldbank.org/home.aspx)
 
 Then I clicked "Add Series". From there I found that many series I did not want were selected, so I clicked "Unselect all", then selected "GDP per capita (constant 2015 US$)", "GDP per capita, PPP (constant 2021 international $)" and "Population, total". Then I clicked "x" in the upper right and "Apply Changes" as before. 
 
-Then I clicked "Download options" and selected "Excel". That downloaded a file named `P_Popular Indicators.xlsx`, which I moved to the working directory and changed the name by adding the current data in compressed ISO 8601 format as 20231113. 
+Then I clicked "Download options" and selected "Excel". That downloaded a file named `P_Popular Indicators.xlsx`, which I moved to the working directory and changed the name by adding the current date in compressed ISO 8601 format as 20231113. 
 
 I opened `P_Popular Indicators20231113.xlsx` and found a tab for "Series - Metadata". This included in columns C and D "GDP per capita (constant 2015 US$)", "GDP per capita, PPP (constant 2021 international $)", and "Total population ... are midyear estimates". 
 
@@ -42,7 +42,7 @@ With `run` = `noSearch` , `noDir`, or `noRead`, the package checked fine both on
 GitHub Action worked through obtaining `extdata` path to the subdirectory of the `acledr` package with `run = "findExtr"` but failed when actually trying to read such files with `run = "readExtr"` or `"all"`. 
 
 ```{r extdata}
-run <- c("noSearch", "noDir", "noRead", 'read', "allButSave", "all")[3]
+run <- c("noSearch", "noDir", "noRead", 'read', "allButSave", "all")[6]
 if(run %in% c("noDir", "noRead", 'read', "allButSave", "all")){
   library(acledr)
   (extdata <- findSubdir())
@@ -53,14 +53,17 @@ Now find the World Bank data.
 
 ```{r d_e_files}
 if(run %in% c("noRead", 'read', "allButSave", "all")){
-  (xlsFiles <- dir(extdata, pattern='\\.xlsx$'))
+  (xlsFiles. <- dir(extdata, pattern='\\.xlsx$'))
+  (xlsFiles <- dir(extdata, pattern='\\.xlsx$', 
+                   full.names = TRUE))
 
   if((length(xlsFiles)<1) || (max(nchar(xlsFiles)<1))){
     stop('No xlsFiles found in extdata = ',
          extdata)
   }
 
-  (WBfiles <- grep('^P_', xlsFiles, value=TRUE))
+  (WBfi <- grep('^P_', xlsFiles.))
+  (WBfiles <- xlsFiles[WBfi])
   nWBfiles <- length(WBfiles)
   if((nWBfiles<1) || (max(nchar(WBfiles)<1))){
     stop('No WBfiles found in extdata xlsFiles = ',
@@ -96,7 +99,8 @@ if(run %in% c("allButSave", "all")){
               'CtryCode', paste0('YR', 2020:2023))
   cbind(WBnames, WBnames2)
 
-  WBdat. <- head(WorldBankData, -5)
+  (WBna <- which(is.na(WorldBankData[[2]])))
+  WBdat. <- WorldBankData[-WBna,]
   names(WBdat.) <- WBnames2
   str(WBdat.)
 }
@@ -111,7 +115,7 @@ if(run %in% c("allButSave", "all")){
   WBna <- vector("list", 4)
   names(WBna) <- names(WBdat)[5:8]
   for(i in 5:8){
-    WBdat[[i]] <- as.numeric(WBdat.[[i]])
+    WBdat[[i]] <- suppressWarnings(as.numeric(WBdat.[[i]]))
     WBna[[i-4]] <- (is.na(WBdat[[i]]))
   }
 
@@ -169,8 +173,12 @@ Let's do the same for `WBdat` `Country` and `CtryCode`:
 
 ```{r CtryCodeChk}
 if(run %in% c("allButSave", "all")){
-  dim(Ctry_code <-  with(WBdat, table(Country, CtryCode)))
-  sum(Ctry_code!=0)
+  (nobs2 <- dim(Ctry_code <-  with(WBdat, table(Country, CtryCode))))
+  (nobs <- sum(Ctry_code!=0))
+  if(nobs != nobs2[1]){
+    stop('Mismatches between Country and CountryCodes;', 
+         ' nobs2 = ', nobs2, '; nobds =', nobs)
+  }
 }
 ```
 
@@ -178,7 +186,7 @@ Good: There are 217 `Country` names, matched with `CtryCode`s.
 
 ```{r  CtryCode}
 if(run %in% c("allButSave", "all")){
-  str(WBctryCode <- WBdat[1:217, 3:4])
+  str(WBctryCode <- WBdat[1:nobs, 3:4])
 
   table(nchar(WBctryCode[, 2]))
 }
@@ -192,7 +200,7 @@ Save `WBdat`.
 
 ```{r save}
 if(run =="all"){
-  usethis::use_data(WBdat)
+  usethis::use_data(WBdat, overwrite = TRUE)
 }
 ```
 
