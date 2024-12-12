@@ -26,7 +26,8 @@ grepInTable <- function(pattern, referenceTable =
       out[iStr] <- paste('No match found for', 
                          pattern[iStr])
     } else{
-      out[iStr] <- paste(iso3[ix], collapse=collapse)
+      iso3ix <- unique(iso3[ix])
+      out[iStr] <- paste(iso3ix, collapse=collapse)
       if(nchar(out[iStr])<1){ 
         out[iStr] <- paste('Found in row', ix, 
                 "of referenceTable with column 1 = ''")
