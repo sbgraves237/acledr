@@ -85,6 +85,7 @@ grepInTable(pattern, referenceTable =
 }
 %\references{}
 \examples{
+# Test with three countries in the default referenceTable
 tstCodes <- grepInTable(
     c('Iran', 'Christmas Island', 'eSwatini'))
     
@@ -96,6 +97,21 @@ answer <- c(Iran='IRN', 'Christmas Island' =
 stopifnot(
 }
 all.equal(tstCodes, answer)
+\dontshow{)}
+
+# Test using WBdat as referenceTable
+tstCd2 <- grepInTable(
+    c('Iran', 'Christmas Island', 'eSwatini'), 
+    WBdat[4:3])
+    
+answ2 <- c(Iran='IRN', 'Christmas Island' =
+        "No match found for Christmas Island",
+  'eSwatini'="SWZ")    
+
+\dontshow{
+stopifnot(
+}
+all.equal(tstCd2, answ2)
 \dontshow{)}
 }    
 \keyword{manip}
