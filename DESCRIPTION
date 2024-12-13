@@ -1,5 +1,5 @@
 Package: acledr
-Version: 0.0-2
+Version: 0.0-3
 Date: 2024-12-11
 Title: Merge and analyze Armed Conflict Location and Effect Data (ACLED)
 Authors@R: person(given = "Spencer", 
