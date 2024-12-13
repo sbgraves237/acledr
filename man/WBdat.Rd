@@ -6,9 +6,12 @@
 }
 \description{
   World Bank data on population and average annual 
-  income (Gross Domestic Product, GDP, per cap, 
-  `GDPpc`, both nominal and at purchasing power 
-  parity (PPP) for 2021-2023. 
+  income (Gross Domestic Product, GDP, per capita, 
+  `GDPpc`), both 
+  \href{https://en.wikipedia.org/wiki/List_of_countries_by_GDP_(nominal)}{nominal}, 
+  i.e., at current exchange rates (GDPpcn) and 
+  \href{https://en.wikipedia.org/wiki/List_of_countries_by_GDP_(PPP)}{at purchasing power parity} 
+  (PPP, GDPpcp) for 2020:2023 and average. 
 }
 \usage{
   data(WBdat)
@@ -22,9 +25,11 @@
       variables and the corresponding coded name:
       \tabular{rr}{
         \bold{Series} \tab \bold{SeriesCode}\cr
-        GDP per capita (constant 2015 US$) \tab NY.GDP.PCAP.KD\cr
-        GDP per capita, PPP (constant 2021 international $) \tab NY.GDP.PCAP.PP.KD\cr
-        Population, total \tab SP.POP.TOTL\cr
+        GDP per capita (constant 2015 US dollars) 
+        \tab NY.GDP.PCAP.KD\cr GDP per capita, PPP 
+        (constant 2021 international dollars) \tab 
+        NY.GDP.PCAP.PP.KD\cr Population, total 
+        \tab SP.POP.TOTL\cr
       }
     }
     \item{Country, CtryCode}{
@@ -72,9 +77,9 @@
   
   Opening \code{P_Popular Indicators20231113.xlsx} exposed
   a tab for "Series - Metadata". This included in columns C 
-  and D "GDP per capita (constant 2015 US$)", "GDP per capita, 
-  PPP (constant 2021 international $)", and "Total population 
-  ... are midyear estimates". 
+  and D "GDP per capita (constant 2015 US dollars)", "GDP 
+  per capita, PPP (constant 2021 international dollars)", 
+  and "Total population ... are midyear estimates". 
 }
 \source{
   \href{https://databank.worldbank.org/home.aspx}{DataBank}
