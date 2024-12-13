@@ -1,0 +1,734 @@
+---
+title: "Create ACLEDpopGDP data.frame"
+author: "Spencer Graves"
+date: "2024-12-13"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteEngine{knitr::knitr}
+  %\VignetteIndexEntry{ACLEDctryCode}
+  %\usepackage[UTF-8]{inputenc}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+
+This vignette describes the creation of the `ACLEDpopGDP` [`data.frame`](https://stat.ethz.ch/R-manual/R-devel/library/base/html/data.frame.html) from the `WBdat` dataset and other sources. This `ACLEDpopGDP` dataset will then be merged with various ACLED datasets described in the help file `acledSum` and used for other data analyses. 
+
+We first create an empty `data.frame`, then fill it starting with `WBdat` and manually adding data for all ACLED "countries" that are not in `WBdat`. 
+
+## Create `ACLEDpopGDP` 
+
+Let's create a `data.frame` with the `ACLED` and `WorldBank` country names plus the 3-letter ISO codes and the `WB` population and GDP data for 2020, 2021, 2022, and 2023 plus a "Comment" column that would be blank for the countries for which we have `WB` data and a comment on the source used otherwise, e.g., "Wikipedia", and give the actual date for the data and other information, e.g., exchange rate Euros to US dollars. Then add it to the `acledr` package.
+
+```{r ACLEDpopGDP0}
+library(acledr)
+ACLEDpopGDP <- data.frame(ACLEDcountry=names(ACLEDctryCode), 
+  ISO3=as.character(ACLEDctryCode), WBcountry=NA, 
+  pop2020=NA, pop2021=NA, pop2022=NA, pop2023=NA, pop=NA, 
+  GDPpcn2020=NA, GDPpcn2021=NA, GDPpcn2022=NA, GDPpcn2023=NA, 
+  GDPpcn=NA, 
+  GDPpcp2020=NA, GDPpcp2021=NA, GDPpcp2022=NA, GDPpcp2023=NA, 
+  GDPpcp=NA, Comments=NA)
+rownames(ACLEDpopGDP) <- names(ACLEDctryCode)
+
+(nACLED <- length(ACLEDctryCode)) 
+nAC <- length(union(ctryMoEv$Country, 
+          names(ACLEDctryCode)))
+if(nAC != nACLED)stop('nACLED pblm')
+```
+
+Now fill the World Bank data. 
+
+```{r ACLEDpopGDP0a}
+pops <- paste0('pop', c(2020:2023, ''))
+GDPn <- paste0('GDPpcn', c(2020:2023, ''))
+GDPp <- paste0('GDPpcp', c(2020:2023, ''))
+YRs <- c(paste0('YR', 2020:2023), 'avg') 
+for(i in 1:nACLED){
+  iWB <- which(ACLEDctryCode[i]==WBdat$CtryCode)
+  ACLEDpopGDP$WBcountry[i] <- WBdat$Country[iWB[1]]
+  ACLEDpopGDP[i, pops] <- WBdat[iWB[3], YRs]
+  ACLEDpopGDP[i, GDPp] <- WBdat[iWB[2], YRs]
+  ACLEDpopGDP[i, GDPn] <- WBdat[iWB[1], YRs]
+}
+head(ACLEDpopGDP, 1)
+
+WBdat[grep('Afghanistan', WBdat$Country), ]
+```
+
+As a check, we note that the Wikipedia article on [Afghanistan](https://en.wikipedia.org/wiki/Afghanistan) says its population in 2023 was estimated at 41,128,771 and for 2020 its nominal GDP per capita was $611 and its `GDPpc (PPP)` was $2,459. These are roughly comparable to the World Bank numbers in this table. 
+
+```{r ACLEDpopGDP0b}
+tail(ACLEDpopGDP, 2)
+
+oops <- which(is.na(ACLEDpopGDP$WBcountry))
+names(oops) <- names(ACLEDctryCode)[oops]
+
+oops
+
+(noops <- length(oops))
+```
+
+`oops` identifies `r noops` "Countries" not in `WBdat`. 
+
+However, some World Bank countries have population but not `GDP`. 
+
+
+```{r Oopsn}
+Oopsn <- which(is.na(ACLEDpopGDP$GDPpcn))
+names(Oopsn) <- names(ACLEDctryCode)[Oopsn]
+
+(noopsn <- length(Oopsn))
+dnoopsn <- (noopsn - noops)
+
+Oopsn
+```
+
+`Oopsn` identifies those `r noops` plus another `r dnoopsn` for which `WBdat` contains no GDP data. Let's manually research those `r noopsn` and try to fill these gaps with something plausible. 
+
+
+```{r ACLEDpopGDPoops1}
+ACLEDpopGDP[Oopsn[1], ]
+```
+
+[Anguilla](https://en.wikipedia.org/wiki/Anguilla) is a "British Overseas Territory in the Caribbean." It is NOT an independent nation and not in the World Bank data we extracted. However, it had population estimates for 2011 and 2021 of 13,452 and 15,753, respectively. And it had `GDPpcp` for 2014 of $29,493. GDP nominal for 2020 was US$307,000,000, according to sources cited in the Wikipedia article on it. 
+
+```{r Aguilla}
+
+ACLEDpopGDP[Oopsn[1], 'pop2021'] <- 15753
+ACLEDpopGDP[Oopsn[1], 'GDPpcp2020'] <- 29493
+
+# interpolate population 
+Ag_pop <- c("2011"=13452, "2021"=15753)
+d_logPop1 <- (diff(as.vector(log(Ag_pop)))/10)
+(Ag_pop2020 <- exp(log(as.vector(Ag_pop[2]))-d_logPop1))
+
+ACLEDpopGDP[Oopsn[1], 'GDPpcn2020'] <- (307e6/Ag_pop2020)
+ACLEDpopGDP[Oopsn[1], "Comments"] <- paste(
+    'pop and GDPpcp for the 2021 and 2014 from Wikipedia;',
+    'GDPpcp2014 reported as GDPpcp2010. GDP nominal', 
+    'for 2020 estimated at US$307 million. pop for 2010',
+    'estimated by linear interpolation on a log scale',
+    'from numbers given at 15,506. That gives GDPpcn2020', 
+    'of $19,799. Wikipedia accessed 2024-11-14.')
+ACLEDpopGDP[Oopsn[1],-1]
+
+ACLEDpopGDP[Oopsn[2],-1]
+
+ctry[names(Oopsn)[2], -1]
+```
+
+[Antarctica](https://en.wikipedia.org/wiki/Antarctica) has a population that varies from 1,300 to 5,100 depending on the season, according to the Wikipedia article on it. No GDP is given. Its GDP per capita is probably relatively high, because there is no indigenous economy and it's quite expensive to get humans and supplies there. And with only 9 events and 0 deaths, we would not likely want to include that in any experimental or control group for randomized controlled trials of conflict interventions. 
+
+```{r Antarctica} 
+ACLEDpopGDP[Oopsn[2], 'pop2022'] <- 1300
+ACLEDpopGDP[Oopsn[2], 'pop2023'] <- 5100
+ACLEDpopGDP[Oopsn[2], "Comments"] <- paste(
+    'Wikipedia "Antarctica" says,',
+    '"Population 1,300 to 5,100 (seasonal)".', 
+    'No year was given for those numbers,', 
+    'and no GDP numbers. We may not need', 
+    'GDP without some deaths and more events.', 
+    'Wikip. accessed 2024-11-07.')
+ACLEDpopGDP[Oopsn[2],-1]
+
+ACLEDpopGDP[Oopsn[3],-1]
+ctry[names(Oopsn)[3], -1]
+```
+
+[Guernsey](https://en.wikipedia.org/wiki/Bailiwick_of_Guernsey) is a British 'crown dependency' with a 2016 population estimated at 67,334, a 2003 `GDPpcp` of £33,123, and a nominal GDP of USD 4,513.63 million. The [British Pound (GBP) to US Dollar (USD) Exchange Rate History for 2003](https://www.macrotrends.net/2549/pound-dollar-exchange-rate-historical-chart) averaged roughly $1.60 per British pound. The article does not give a good source for the nominal `GDP`. We will divide the number we have by the 2016 population and pretend that was `GDPpcn` for 2020, the earliest year in our table. 
+
+```{r Guernsey} 
+ACLEDpopGDP[Oopsn[3], 'pop2022'] <- 67334
+ACLEDpopGDP[Oopsn[3], 'GDPpcp2020'] <- (33123 * 1.6)
+ACLEDpopGDP[Oopsn[3], 'GDPpcn2020'] <- (4.51363e9 / 67334)
+ACLEDpopGDP[Oopsn[3], "Comments"] <- paste(
+    'Wikipedia "Guernsey" says the population was', 
+    'estimated at 67,334 for 2016 and GDPpcp in 2003', 
+    'was £33,123. A British pound bought roughly 1.60', 
+    'USD that year. We will use that exchange rate and', 
+    'ignore the difference between 2003 and 2020.', 
+    'The article also gave a nominal GDP of USD 4,513.63', 
+    'million without giving a year or a source. We', 
+    'divide that by the 2016 population and use that as', 
+    'GDPpcn2020. Accessed 2024-11-14.') 
+ACLEDpopGDP[Oopsn[3],-1]
+
+ACLEDpopGDP[Oopsn[4],-1]
+ctry[names(Oopsn)[4], -1]
+```
+
+[Jersey](https://en.wikipedia.org/wiki/Jersey) had a 2021 census of 103,267, `GDPpcp` for 2015 estimated at £45,783 and `GDPpcn` for 2019 estimated at £45,320. The [British Pound (GBP) to US Dollar (USD) Exchange Rate History for 2015](https://www.exchangerates.org.uk/GBP-USD-spot-exchange-rates-history-2015.html) and the [British Pound (GBP) to US Dollar (USD) Exchange Rate History for 2019](https://www.exchangerates.org.uk/GBP-USD-spot-exchange-rates-history-2019.html) says 1 GBP bought on average 1.5285 USD in 2015 but only 1.2772 USD in 2019. We'll compute those numbers and report them for 2020. 
+
+```{r Jersey} 
+ACLEDpopGDP[Oopsn[4], 'pop2021'] <- 103267
+ACLEDpopGDP[Oopsn[4], 'GDPpcp2020'] <- (45783 * 1.5285)
+ACLEDpopGDP[Oopsn[4], 'GDPpcn2020'] <- (45320 * 1.2772)
+ACLEDpopGDP[Oopsn[4], "Comments"] <- paste(
+    'Wikipedia "Jersey" says, 2021 census of 103,267,', 
+    'a GDPpcp in 2015 of about £45,783 and a GDPpcn for', 
+    '2019 of roughly  £45,320. One GBP bought on average', 
+    '1.5285 USD in 2015 but only 1.2772 in 2019. Accessed', 
+    '2024-11-14.') 
+ACLEDpopGDP[Oopsn[4],-1]
+
+ACLEDpopGDP[Oopsn[5],-1]
+ctry[names(Oopsn)[5], -1]
+```
+
+The [British Virgin Islands](https://en.wikipedia.org/wiki/British_Virgin_Islands) had a `GDPpcp` for 2017 estimated at $34,200. We'll pretend that was for 2020 and add it to `ACLEDpopGDP`. 
+
+```{r BritishVirginIslands} 
+ACLEDpopGDP[Oopsn[5], 'GDPpcp2020'] <- 34200 
+ACLEDpopGDP[Oopsn[5], "Comments"] <- paste(
+    'The World Bank had population but not GDP data', 
+    'for the British Virgin Islands. Wikipedia said', 
+    'they had GDPpcp in 2017 of roughly $34,200.', 
+    'Accessed 2024-11-14.') 
+ACLEDpopGDP[Oopsn[5],-1]
+
+ACLEDpopGDP[Oopsn[6],-1]
+ctry[names(Oopsn)[6], -1]
+```
+
+The [Caribbean Netherlands](https://en.wikipedia.org/wiki/Caribbean_Netherlands) had a 2024 population estimated at 30,000 with 2022 nominal GDP $725,000,000. 
+
+```{r CaribbeanNetherlands} 
+ACLEDpopGDP[Oopsn[6], 'pop2023'] <- 30000
+ACLEDpopGDP[Oopsn[6], 'GDPpcn2023'] <- (725e6 / 30000)
+ACLEDpopGDP[Oopsn[6], "Comments"] <- paste(
+    'Wikipedia "Caribbean Netherlands" says, 2024', 
+    'population estimate 30.000 and 2023 GDP',
+    'UD$725 million. Accessed 2024-11-15.') 
+ACLEDpopGDP[Oopsn[6],-1]
+
+ACLEDpopGDP[Oopsn[7],-1]
+ctry[names(Oopsn)[7], -1]
+```
+
+[Christmas Island](https://en.wikipedia.org/wiki/Christmas_Island), a territory of Australia with a 2021 population of 1,692 and a nominal 2010 `GDP` estimated at $52.1 million, which appears to be USD, not Australian dollar, and we will ignore the difference between 2010 and 2020.
+
+```{r ChristmasIsland} 
+ACLEDpopGDP[Oopsn[7], 'pop2021'] <- 1692
+ACLEDpopGDP[Oopsn[7], 'GDPpcn2020'] <- (52.1e6 / 1692)
+ACLEDpopGDP[Oopsn[7], "Comments"] <- paste(
+    'Wikipedia "Christmas Island" says, 2021', 
+    'population estimate 1,692 with a nominal', 
+    '2010 GDP estimated at $52.1 million,', 
+    'which appears to be USD, not Australian', 
+    'dollar.') 
+ACLEDpopGDP[Oopsn[7],-1]
+
+ACLEDpopGDP[Oopsn[8],-1]
+ctry[names(Oopsn)[8], -1]
+```
+
+[Cook Islands](https://en.wikipedia.org/wiki/Cook_Islands) are self-governing "in free association with New Zealand" with a 2021 population of 15,040 and `GDPpcn` esimated at $21,994 USD for 2020. 
+
+```{r CookIslands} 
+ACLEDpopGDP[Oopsn[8], 'pop2021'] <- 15040
+ACLEDpopGDP[Oopsn[8], 'GDPpcn2020'] <- 21994
+ACLEDpopGDP[Oopsn[8], "Comments"] <- paste(
+    'Wikipedia "Cook Islands" says they are', 
+    'self-governing in free association with ', 
+    'New Zealand with a 2021 population of 15,040', 
+    'and a nominal GDP estimated at $384 million',
+    'USD for 2020. Accessed 2024-11-15.')
+ACLEDpopGDP[Oopsn[8],-1]
+
+ACLEDpopGDP[Oopsn[9],-1]
+ctry[names(Oopsn)[9], -1]
+```
+
+The World Bank reported no `GDPpcp` nor `GDPpcn` data for 2020:2023 for [Eritrea](https://en.wikipedia.org/wiki/Eritrea). Wikipedia reported `GDPpcp` = $1,835 and `GDPpcn` = $566 for 2019. 
+
+```{r Eritrea} 
+ACLEDpopGDP[Oopsn[9], 'GDPpcp2020'] <- 1835
+ACLEDpopGDP[Oopsn[9], 'GDPpcn2020'] <- 566
+ACLEDpopGDP[Oopsn[9], "Comments"] <- paste(
+    'World Bank reported population but no GDP', 
+    'data for Eritrea for 2020:2023. Wikipedia gave GDP', 
+    'nominal and PPP = 566 and 1,835, respectively,', 
+    'for 2019. We use those both for 2020. Accessed', 
+    '2024-11-15.') 
+ACLEDpopGDP[Oopsn[9],-1]
+
+ACLEDpopGDP[Oopsn[10],-1]
+ctry[names(Oopsn)[10], -1]
+```
+
+The [Falkland Islands](https://en.wikipedia.org/wiki/Falkland_Islands) are a British overseas territory with a 2021 population of 3,662, and a 2013 `GDPpcp` estimated at $96,962 USD. 
+
+```{r FalklandIslands} 
+ACLEDpopGDP[Oopsn[10], 'pop2021'] <- 3662
+ACLEDpopGDP[Oopsn[10], 'GDPpcp2020'] <- 96962
+ACLEDpopGDP[Oopsn[10], "Comments"] <- paste(
+    'Wikipedia "Falkland Islands" says they are', 
+    'a British overseas territory with a 2021', 
+    'population of 15,040 and a GDPpcp', 
+    'estimated at $96,962 for 2013. We ignore', 
+    'the difference between 2013 and 2020.')
+ACLEDpopGDP[Oopsn[10],-1]
+
+ACLEDpopGDP[Oopsn[11],-1]
+ctry[names(Oopsn)[11], -1]
+```
+
+[French Guiana](https://en.wikipedia.org/wiki/French_Guiana) is a department of France on the northeast corner of South America between Brazil and Suriname. Its 2024 population is 295,385 and has a 2022 `GDP` of 4.56199 billion Euros. It doesn't say, but that is likely nominal, not `PPP`. Over 2022, [one Euro averaged 1.0535 USD](https://www.exchange-rates.org/exchange-rate-history/eur-usd-2022). And we'll divide that by the 2023 population to get `GDPpcn2022`. Better numbers are probably available but not worth the effort for current purposes, 
+
+```{r Guiana} 
+ACLEDpopGDP[Oopsn[11], 'pop2023'] <- 295385
+ACLEDpopGDP[Oopsn[11], 'GDPpcn2022'] <- (
+                  1.0535 * 4.56199e9 / 295385)
+ACLEDpopGDP[Oopsn[11], "Comments"] <- paste(
+    'Wikipedia "French Guiana" says it is', 
+    '"is an overseas department and region', 
+    'of France located on the northern coast', 
+    'of South America". Its 2024 population', 
+    'is 295,385. It has a 2022 GDP of 4.56199', 
+    'billion Euros. Over 2022, one Euro', 
+    'averaged 1.0535 USD. Accessed 2024-11-15')
+ACLEDpopGDP[Oopsn[11],-1]
+
+ACLEDpopGDP[Oopsn[12],-1]
+ctry[names(Oopsn)[12], -1]
+```
+
+[Gibraltar](https://en.wikipedia.org/wiki/Gibraltar) is a British overseas territory in the World Bank data but missing all the selected `GDP` numbers. Wikipedia reports `GDPpcp` for 2013 of £50,941 and `GDPpcn` for 2024 of £85,614. The [British pounds to US dollar exchange rate for 2013](https://www.exchange-rates.org/exchange-rate-history/gbp-usd-2013) averaged 1.5647 for 1 GBP. We'll pretend the `GDPpcn` figure was for [2023, when on average 1 GBP](https://www.exchange-rates.org/exchange-rate-history/gbp-usd-2023) bought only 1.2440 USD. 
+
+```{r Gibraltar} 
+ACLEDpopGDP[Oopsn[12], 'GDPpcn2023'] <- (1.244  * 85614)
+ACLEDpopGDP[Oopsn[12], 'GDPpcp2020'] <- (1.5647  * 50941)
+ACLEDpopGDP[Oopsn[12], "Comments"] <- paste('Gibraltar', 
+        'was in the World Bank data we extracted but without', 
+        'GDP data. Wikipedia said its GDPpcp for 2013 was', 
+        '£50,941 and GDPpcn for 2024 of £85,614. We found', 
+        'exchange rates for 2013 and 2023 of 1 GBP =', 
+        '1.5647 and 1.2440 USD, respectively. Accessed', 
+        '2024-11-15')
+ACLEDpopGDP[Oopsn[12],-1]
+
+ACLEDpopGDP[Oopsn[13],-1]
+ctry[names(Oopsn)[13], -1]
+```
+
+[Guadeloupe](https://en.wikipedia.org/wiki/Guadeloupe) is a French department in the Caribbean with 2024-01-01 population of 378,561. The [source it cites for `GDP` says that in 2022](https://ec.europa.eu/eurostat/databrowser/view/tgs00003/default/table?lang=en) it was 10.489 billion Euros. [Over that year, on average 1 Euro would buy 1.0535 USD](https://www.exchange-rates.org/exchange-rate-history/eur-usd-2022).  
+
+```{r Guadeloupe} 
+ACLEDpopGDP[Oopsn[13], 'pop2023'] <-  378561
+ACLEDpopGDP[Oopsn[13], 'GDPpcn2022'] <- 
+                      (1.0535 *10.489e9 / 378561)
+ACLEDpopGDP[Oopsn[13], "Comments"] <- paste(
+    'Wikipedia "Guadeloupe" says it', 
+    '"is an overseas department and region', 
+    'of France in the Caribbean." Its', 
+    'population 2024-01-01 was 378,561.',
+    'The source it cited for regional GDP gave', 
+    '10.489 billion Euros for 2022. That year', 
+    'one Euro bought on average 1.0535 USD.', 
+    'Accessed 2024-11-15.')
+ACLEDpopGDP[Oopsn[13],-1]
+
+ACLEDpopGDP[Oopsn[14],-1]
+ctry[names(Oopsn)[14], -1]
+```
+
+Our World Bank extract includes population but not `GDP` data for [Liechtenstein](https://en.wikipedia.org/wiki/Liechtenstein). Wikipedia says its `GDPpcp` was $98,432 in 2014 and its `GDPpcn` was $187,267 in 2022. As before, we ignore the different between 2014 and 2020. 
+
+```{r Liechtenstein} 
+ACLEDpopGDP[Oopsn[14], 'GDPpcp2020'] <- 98432
+ACLEDpopGDP[Oopsn[14], 'GDPpcn2020'] <- 187267
+ACLEDpopGDP[Oopsn[14], "Comments"] <- paste(
+    'Our World Bank extract on Liechtenstein', 
+    'included population but not GDP data.', 
+    'Wikipedia gave GDPpcp = $98,432 and GDPpcn', 
+    '= $187,267 for 2014 and 2020, respectively.', 
+    'Accessed 2024-11-15.')
+ACLEDpopGDP[Oopsn[14],-1]
+
+ACLEDpopGDP[Oopsn[15],-1]
+ctry[names(Oopsn)[15], -1]
+```
+
+[Martinique](https://en.wikipedia.org/wiki/Martinique) is an overseas department of France in the Lesser Antilles with a 2024-01-01 population of 349,925 and a `GDPpcn` of €24,700, according to the Wikipedia article on it. The article doesn't give a specific year for that `GDP` figure nor whether it's nominal or `PPP`, and it does not cite a source. However, we'll assume it was nominal for 2023, during which [1 Euro bought on average](https://www.exchange-rates.org/exchange-rate-history/eur-usd-2023) 1.0821 USD.  
+
+```{r Martinique} 
+ACLEDpopGDP[Oopsn[15], 'pop2023'] <-   349925
+ACLEDpopGDP[Oopsn[15], 'GDPpcn2023'] <- (1.0821 * 24700)
+ACLEDpopGDP[Oopsn[15], "Comments"] <- paste(
+    'Wikipedia "Martinique" says it is an overseas', 
+    'department of France with a population of 349,925', 
+    'in 2024-01-01 and a GDPpc of 24,700 Euros. We', 
+    'assume that is GDPpcn2023, during which 1 Euro', 
+    'bought on average 1.0821 USD. Accessed 2024-11-15.')
+ACLEDpopGDP[Oopsn[15],-1]
+
+ACLEDpopGDP[Oopsn[16],-1]
+ctry[names(Oopsn)[16], -1]
+```
+
+[Mayotte](https://en.wikipedia.org/wiki/Mayotte) is an overseas department of France at the north end of the Mozambique channel with a country code of `MYT` and a 2024-01 population of 320,901, according to Wikipedia. [Regional gross domestic product by NUTS 2 region - million EUR](https://ec.europa.eu/eurostat/databrowser/view/tgs00003/default/table?lang=en) gives it 2022 `GDP` at 3.34679 billion Euros; we assume this is nominal. The [Euro (EUR) To US Dollar (USD) Exchange Rate History for 2022](https://www.exchange-rates.org/exchange-rate-history/eur-usd-2022) says that in 2022 one Euro bought on average 1.0535 USD. 
+
+```{r Mayotte} 
+ACLEDpopGDP[Oopsn[16], 'pop2023'] <-   320901
+ACLEDpopGDP[Oopsn[16], 'GDPpcn2022'] <- (
+                1.0535 * 3.34679e9 / 320901)
+ACLEDpopGDP[Oopsn[16], "Comments"] <- paste(
+    'Wikipedia "Mayotte" says it is an overseas',
+    'department of France with a population of',
+    '320,901 in 2024-01. Eurostat, cited by', 
+    'Wikipedia, gave its 2022 GDP at 3.34679', 
+    'billion Euros. The exchange rate in 2022', 
+    'averaged 1.0535 USD per Euro. Accessed', 
+    '2024-11-15.')
+ACLEDpopGDP[Oopsn[16],-1]
+
+ACLEDpopGDP[Oopsn[17],-1]
+ctry[names(Oopsn)[17], -1]
+```
+
+[Montserrat](https://en.wikipedia.org/wiki/Montserrat) is a British overseas territory with a 2022 population estimated at 4,390, `GDPpcp` of US$12,384 for 2014 and `GDP` for 2019 estimated at US$181,680,000. With only 1 event and 0 deaths in our `ACLED` data extract, it cannot be that important to get accurate numbers. We will therefore infer `GDPpcn2020` from the numbers we have ignoring the obvious differences in dates. 
+
+```{r Montserrat} 
+ACLEDpopGDP[Oopsn[17], 'pop2022'] <-   4390
+ACLEDpopGDP[Oopsn[17], 'GDPpcp2020'] <- 12384
+ACLEDpopGDP[Oopsn[17], 'GDPpcn2020'] <- (181.68e6 / 4390)
+ACLEDpopGDP[Oopsn[17], "Comments"] <- paste(
+    'Wikipedia "Montserrat" says it is a British', 
+    'overseas territory with a 2022 population of', 
+    '4,390 and a nominal GDP for 2019 of', 
+    'US$181,680,000. We ignore the difference between', 
+    '2019, 2020, and 2022. Accessed 2024-11-15.')
+ACLEDpopGDP[Oopsn[17],-1]
+
+ACLEDpopGDP[Oopsn[18],-1]
+ctry[names(Oopsn)[18], -1]
+```
+
+[New Caledonia](https://en.wikipedia.org/wiki/New_Caledonia) is "a *sui generis* collectivity of France in the Southwest Pacific. Our World Bank data extract provides population but not `GDP` data. The Wikipedia article on it gives a `GDPpcn` estimate for 2019 of US$34,780. 
+
+```{r NewCaledonia} 
+ACLEDpopGDP[Oopsn[18], 'GDPpcn2020'] <- 34780 
+ACLEDpopGDP[Oopsn[18], "Comments"] <- paste(
+    'Wikipedia "New Caledonia" says it is a sui', 
+    'generis collectivity of France in the Southwest', 
+    'Pacific. Our World Bank extract provided population', 
+    'but not GDP data. Wikipedia gave GDPpcn for 2019 of', 
+    'US$34,780. We report the latter for 2020. Accessed', 
+    '2024-11-15.')
+ACLEDpopGDP[Oopsn[18],-1]
+
+ACLEDpopGDP[Oopsn[19],-1]
+ctry[names(Oopsn)[19], -1]
+```
+
+[Niue](https://en.wikipedia.org/wiki/Niue) is "a self-governing island country in free association with New Zealand" with a 2021 population of 1,937, a `GDPpcp` for 2019 of $5,800 and a 2021 nominal `GDP` estimated at $38 million USD. 
+
+```{r Niue} 
+ACLEDpopGDP[Oopsn[19], 'pop2021'] <- 1937
+ACLEDpopGDP[Oopsn[19], 'GDPpcp2020'] <- 5800
+ACLEDpopGDP[Oopsn[19], 'GDPpcn2021'] <- (38e6 / 1937)
+ACLEDpopGDP[Oopsn[19], "Comments"] <- paste(
+    'Wikipedia "Niue" says it is a', 
+    'self-governing island country in free', 
+    'association with New Zealand, a 2021',
+    'population of 1,937, a GDPpcp for 2019', 
+    'of $5,800 and a nominal GDP for 2021 of',
+    '38 million USD. Accessed 2024-11-15.')
+ACLEDpopGDP[Oopsn[19],-1]
+
+ACLEDpopGDP[Oopsn[20],-1]
+ctry[names(Oopsn)[20], -1]
+```
+
+Our World Bank data included population but not `GDP` data for [North Korea]. Wikipedia estimated its `GDPpcp` for 2015 at $1,800 and its `GDPpcn` for 2019 at $640. We'll assign both those numbers to 2020, since we are not including earlier years in `ACLEDpopGDP`. 
+
+```{r NorthKorea} 
+ACLEDpopGDP[Oopsn[20], 'GDPpcp2020'] <- 1800
+ACLEDpopGDP[Oopsn[20], 'GDPpcn2020'] <- 640
+ACLEDpopGDP[Oopsn[20], "Comments"] <- paste(
+    'We got population but not GDP data for North', 
+    'Korea from the World Bank. Wikipedia estimated', 
+    'its GDPpcp for 2015 at $1,800 and its GDPpcn', 
+    'for 2019 at $640. Accessed 2024-11-15.')
+ACLEDpopGDP[Oopsn[20],-1]
+
+ACLEDpopGDP[Oopsn[21],-1]
+ctry[names(Oopsn)[21], -1]
+```
+
+[Reunion](https://en.wikipedia.org/wiki/Réunion), a French overseas department in the Indian Ocean with a 2024-01 population 885,700 and `GDPpcn` for 2022 `GDP` of €24,465. The [Euro (EUR) To US Dollar (USD) Exchange Rate History for 2022](https://www.exchange-rates.org/exchange-rate-history/eur-usd-2022) averaged 1.0535 USD per Euro. 
+
+```{r Reunion} 
+ACLEDpopGDP[Oopsn[21], 'pop2023'] <- 885700
+ACLEDpopGDP[Oopsn[21], 'GDPpcn2022'] <- 
+                      (24465 * 1.0535)
+ACLEDpopGDP[Oopsn[21], "Comments"] <- paste(
+    'Wikipedia "Reunion" says it is a French', 
+    'overseas department with a 2024-01', 
+    'population of 885,700 and a 2022 GDPpcn', 
+    'of €24,465. The exchange rate for that', 
+    'year averaged 1.0535 USD per Euro.', 
+    'Accessed 2024-11-15.') 
+ACLEDpopGDP[Oopsn[21],-1]
+
+ACLEDpopGDP[Oopsn[22],-1]
+ctry[names(Oopsn)[22], -1]
+```
+
+[Saint Pierre and Miquelon](https://en.wikipedia.org/wiki/Saint_Pierre_and_Miquelon) is a French archipelago of eight islands near Newfoundland with a 2020 population of 6,092 and `GDPpcp` for 2004 estimated at €26,073. A [Euro Dollar Exchange Rate (EUR USD) - Historical Chart](https://www.macrotrends.net/2548/euro-dollar-exchange-rate-historical-chart) showed that one Euro bought between 1.19 and 1.35 USD on different dates in 2004. We'll use the upper nummber as a partial adjustment for inflation between 2004 and 2020, which we will otherwise ignore. 
+
+```{r StPierre} 
+ACLEDpopGDP[Oopsn[22], 'pop2020'] <- 6092
+ACLEDpopGDP[Oopsn[22], 'GDPpcp2020'] <- 
+                          (26073 * 1.35)
+ACLEDpopGDP[Oopsn[22], "Comments"] <- paste(
+    'Wikipedia "Saint Pierre and Miquelon"', 
+    'says it is a French archipelago of',
+    'eight islands near Newfoundland with a',
+    '2020 population of 6,092 and GDPpcp for', 
+    '2004 estimated at €26,073. In 2004, one', 
+    'Euro bought between 1.19 and 1.35 USD.', 
+    'We will use the $1.35 per Euro and ignore',
+    'the difference between nominal and PPP', 
+    'and between 2004 and 2020 for current', 
+    'purposes. If Saint Pierre and Miquelon', 
+    'is chosen for further study, these numbers', 
+    'can be replaced by better data. Accessed', 
+    '2024-11-15.')
+ACLEDpopGDP[Oopsn[22],-1]
+
+ACLEDpopGDP[Oopsn[23],-1]
+ctry[names(Oopsn)[23], -1]
+```
+
+[Saint Barthelemy](https://en.wikipedia.org/wiki/Saint_Barthélemy) is an overseas collectivity of France in the Caribbean with a 2022 population estimated at 10,967, and `GDPpcn` in 2014 estimated at US$51,735. 
+
+```{r StBarts} 
+ACLEDpopGDP[Oopsn[23], 'pop2022'] <- 10967
+ACLEDpopGDP[Oopsn[23], 'GDPpcn2020'] <- 51735
+ACLEDpopGDP[Oopsn[23], "Comments"] <- paste(
+    'Wikipedia "Saint Barthélemy" says it', 
+    'is an overseas collectivity of France', 
+    'with a 2022 population estimated at', 
+    '10,967 and a GDPpcn 2014 estimated at', 
+    '$51,735. For present purposes, we ignore the', 
+    'difference between 2014 and 2020. Accessed', 
+    '2024-11-15.')
+ACLEDpopGDP[Oopsn[23],-1]
+
+ACLEDpopGDP[Oopsn[24],-1]
+ctry[names(Oopsn)[24], -1]
+```
+
+Our World Bank data extract gave population but not `GDP` data for [Saint-Martin](https://en.wikipedia.org/wiki/Saint_Martin_(island)), which is the northern 61 percent of a Caribbean island shared with the Dutch territory of Sint-Maarten. Saint Martin is French; Sint Maarten is Dutch. A Wikipedia article on ["Economy of Saint Martin (island)"](https://en.wikipedia.org/wiki/Economy_of_Saint_Martin_(island)) estimates `GDPpcn` for 2008 at $15,400. 
+
+```{r Saint_Martin} 
+ACLEDpopGDP[Oopsn[24], 'GDPpcn2020'] <- 15400
+ACLEDpopGDP[Oopsn[24], "Comments"] <- paste(
+  'Our World Bank data extract gave population but', 
+  'not GDP data for "St. Martin (French part)".',
+  'The Wikipedia article on "Economy of Saint Martin', 
+  '(island)" estimates GDPpcn for 2008 at $15,400.', 
+  'Accessed 2024-11-15.')
+ACLEDpopGDP[Oopsn[24],-1]
+
+ACLEDpopGDP[Oopsn[25],-1]
+ctry[names(Oopsn)[25], -1]
+```
+
+Our World Bank data gave population but not `GDP` numbers for [South Sudan](https://en.wikipedia.org/wiki/South_Sudan). The Wikipedia article on South Sudan estimated `GDPpcp` = $934 and `GDPocn` = $326 for 2022. 
+
+```{r SouthSudan} 
+ACLEDpopGDP[Oopsn[25], 'GDPpcp2022'] <- 934
+ACLEDpopGDP[Oopsn[25], 'GDPpcn2022'] <- 326
+ACLEDpopGDP[Oopsn[25], "Comments"] <- paste(
+  'Our World Bank data extract gave population but', 
+  'not GDP data for South Sudan. The Wikipedia', 
+  'article on it estimated GDPpcp2022 = $934', 
+  'and GDPpcn2022 = $326. Accessed 2024-11-15.')
+ACLEDpopGDP[Oopsn[25],-1]
+
+ACLEDpopGDP[Oopsn[26],-1]
+ctry[names(Oopsn)[26], -1]
+```
+
+[Taiwan](https://en.wikipedia.org/wiki/Taiwan) is considered by the UN and the World Bank a part of China. The World Bank data I downloaded does not include Taiwan. The Wikipedia article on it cites sources saying that the Taiwanese population was estimated 2022-07-01 at 23,894,394 with estimates of `GDPpcp` = $72,485 and `GDPpcn` = $32,339 for 2023. 
+
+```{r Taiwan} 
+ACLEDpopGDP[Oopsn[26], 'pop2022'] <- 23894394
+ACLEDpopGDP[Oopsn[26], 'GDPpcp2023'] <- 72485
+ACLEDpopGDP[Oopsn[26], 'GDPpcn2023'] <- 32339 
+ACLEDpopGDP[Oopsn[26], "Comments"] <- paste(
+    'Wikipedia "Taiwan" says its population was', 
+    'estimated 2022-07-01 at 23,894,394 and had',
+    'GDPpcp and GDPpcn estimated at $72,485 and', 
+    '$32,339, respectively, for 2023. Accessed', 
+    '2024-11-15.')
+ACLEDpopGDP[Oopsn[26],-1]
+
+ACLEDpopGDP[Oopsn[27],-1]
+ctry[names(Oopsn)[27], -1]
+```
+
+[Tokelau](https://en.wikipedia.org/wiki/Tokelau) is a dependency of New Zealand with a 2016 population of 1,499 and `GDPpcc` = US$6,275 in 2017. 
+
+```{r Tokelau}
+ACLEDpopGDP[Oopsn[27], 'pop2020'] <- 1499
+ACLEDpopGDP[Oopsn[27], 'GDPpcn2020'] <- 6275
+ACLEDpopGDP[Oopsn[27], "Comments"] <- paste(
+    'Wikipedia "Tolelau" says its population', 
+    'was estimated for 2016 at 1,499 and had', 
+    'a nominal GDPpc in 2017 estimated at', 
+    '$6,275 We record both those numbers for', 
+    '2020, ignoring the difference in dates.', 
+    'Accessed 2024-11-15.')
+ACLEDpopGDP[Oopsn[27],-1]
+
+ACLEDpopGDP[Oopsn[28],-1]
+ctry[names(Oopsn)[28], -1]
+```
+
+[Vatican City](https://en.wikipedia.org/wiki/Vatican_City) is a "UN observer" with a 2023 population estimated at 764 and a 2021 `GDPpcp` at 	€19,450.22. During 2021, [one Euro could buy on average 1.1828 USD](https://www.exchange-rates.org/exchange-rate-history/eur-usd-2021).
+
+```{r Vatican} 
+ACLEDpopGDP[Oopsn[28], 'pop2023'] <- 764
+ACLEDpopGDP[Oopsn[28], 'GDPpcp2021'] <- (
+                	19450.22 * 1.1828)
+ACLEDpopGDP[Oopsn[28], "Comments"] <- paste(
+    'Wikipedia "Vatican City" says its', 
+    'population was estimated for 2023 at', 
+    '764 and its GDPpcp for 2021 was estimated', 
+    'at €19,450.22. During 2021, one Euro', 
+    'could buy on average 1.1828 USD.', 
+    'Accessed 2024-11-14.')
+ACLEDpopGDP[Oopsn[28],-1]
+
+ACLEDpopGDP[Oopsn[29],-1]
+ctry[names(Oopsn)[29], -1]
+```
+
+Our World Bank data extract included population numbers for [Venezuela](https://en.wikipedia.org/wiki/Venezuela) but no `GDP` data. The Wikipedia article on Venezuela gave `GDPpcp` = $7,985 and `GDPpcn` = $3,474 for 2023. 
+
+```{r Venezuela} 
+ACLEDpopGDP[Oopsn[29], 'GDPpcp2023'] <- 7985
+ACLEDpopGDP[Oopsn[29], 'GDPpcn2023'] <- 3474
+ACLEDpopGDP[Oopsn[29], "Comments"] <- paste(
+    'World Bank gave population but not GDP for',
+    'Venezuela. Wikipedia gave GDPpcp = $7,985', 
+    'and GDPpcn = $3,474 for 2023. Accessed',
+    '2024-11-14.')
+ACLEDpopGDP[Oopsn[29],-1]
+
+ACLEDpopGDP[Oopsn[30],-1]
+ctry[names(Oopsn)[30], -1]
+```
+
+[Wallis and Futuna](https://en.wikipedia.org/wiki/Wallis_and_Futuna) is a French island collectivity in the South Pacific with a 2023 population of 11,151, and `GDPpcn` estimated for 2005 at $12,640. 
+
+```{r Wallis} 
+ACLEDpopGDP[Oopsn[30], 'pop2023'] <- 11151
+ACLEDpopGDP[Oopsn[30], 'GDPpcn2020'] <- 12640
+ACLEDpopGDP[Oopsn[30], "Comments"] <- paste(
+    'Wikipedia "Wallis and Fortuna" says its', 
+    'population was estimated for 2023 at', 
+    '11,151 and its GDPpcn for 2005 was estimated', 
+    'at $12,640.')
+ACLEDpopGDP[Oopsn[30],-1]
+
+ACLEDpopGDP[Oopsn[31],-1]
+ctry[names(Oopsn)[31], -1]
+```
+
+Our World Bank extract included population for Yemen but no `GDP` data. Wikipedia on [Yemen](https://en.wikipedia.org/wiki/Yemen) reported `GDPpcp2023` = $2,053 and `GDPpcn20231 = $617. 
+
+```{r Yemen} 
+ACLEDpopGDP[Oopsn[31], 'GDPpcn2023'] <- 617
+ACLEDpopGDP[Oopsn[31], 'GDPpcp2023'] <- 2053
+ACLEDpopGDP[Oopsn[31], "Comments"] <- paste(
+    'World Bank provided population data on Yemen', 
+    'but no GDP info. Wikipedia says its', 
+    'GDPpcp2023 = $2,053 and GDPpcn2023 = $617.', 
+    'Accessed 2024-11-15.')
+ACLEDpopGDP[Oopsn[31],-1]
+```
+
+## Check `ACLEDpopGDP`
+
+Let's recompute average for `pops`, `GDPn` and `GDPp`, then find any `NA`s in either `GDPpcp` or `GDPpcn` and fill it from the other if available. 
+
+```{r ACLEDpopGDP1} 
+ACLEDpopGDP0 <- ACLEDpopGDP
+ACLEDpopGDP[, tail(pops, 1)] <- rowMeans(
+    ACLEDpopGDP[, head(pops, -1)], na.rm=TRUE)
+ACLEDpopGDP[, tail(GDPp, 1)] <- rowMeans(
+    ACLEDpopGDP[, head(GDPp, -1)], na.rm=TRUE)
+ACLEDpopGDP[, tail(GDPn, 1)] <- rowMeans(
+    ACLEDpopGDP[, head(GDPn, -1)], na.rm=TRUE)  
+
+GDPpNA <- which(is.na(ACLEDpopGDP[, tail(GDPp, 1)]))
+GDPnNA <- which(is.na(ACLEDpopGDP[, tail(GDPn, 1)]))
+
+ACLEDpopGDP[GDPpNA, tail(GDPp, 1)] <- 
+        ACLEDpopGDP[GDPpNA, tail(GDPn, 1)]
+ACLEDpopGDP[GDPnNA, tail(GDPn, 1)] <- 
+        ACLEDpopGDP[GDPnNA, tail(GDPp, 1)]
+# check
+(GDPnChk <- which(is.na(ACLEDpopGDP[, tail(GDPn, 1)])))
+(GDPpChk <- which(is.na(ACLEDpopGDP[, tail(GDPp, 1)])))
+ACLEDpopGDP[GDPpChk, -1]
+```
+
+Good: Only Antarctica. 
+
+Look for countries with no population figures for 2020:2023.  
+
+```{r noPop} 
+Pops <- ACLEDpopGDP[pops]
+nPopYrs <- rowSums(!is.na(as.matrix(Pops))) 
+table(nPopYrs)
+(naPop <- which(nPopYrs==0))
+```
+
+We have population numbers for all and `GDP` data for all but Antarctica. We could not easily find `GDP` data for Antarctica.
+
+Let's do normal probability plots of `Pops` 
+
+```{r qqnormPops} 
+qqnorm(unlist(Pops)/1e6, datax=TRUE, 
+       ylab='population (millions)')
+qqnorm(unlist(Pops)/1e6, datax=TRUE, 
+    log='x', ylab='population (millions)')
+
+(billion <- which(unlist(Pops)>1e9))
+# 2*5 = 10:
+# Probably India and China
+ACLEDpopGDP[c('China', 'India'), ]
+ACLEDpopGDP[c('China', 'India'), pops] / 1e9
+```
+
+How about `GDPpc`? 
+
+```{r qqnormGDPpc} 
+GDPpc <- ACLEDpopGDP[c(GDPp, GDPn)]
+qqnorm(unlist(GDPpc)/1e3, datax=TRUE, 
+    ylab='GDPpc (thousands of USD)')
+qqnorm(unlist(GDPpc)/1e3, datax=TRUE, log='x', 
+    ylab='GDPpc (thousands of USD)')
+```
+
+Looks sensible. 
+
+## Save 
+
+Save `ACLEDpopGDP`. Execute ONLY if you actually want to update the data in the package (or are running this vignette in a context outside of a pacakge like `acledr`).  
+
+```{r save}
+#usethis::use_data(ACLEDctryCode, overwrite=TRUE)
+# or
+# save(ACLEDctryCode, 'ACLEDctryCode.rda', compress=TRUE)
+```
+
