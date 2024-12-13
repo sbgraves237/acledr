@@ -7,9 +7,9 @@
   (\code{ACLED})
 }
 \description{
-  Merge and analyze data from Armed Conflict Location and Event 
-  Data (\code{ACLED}) and possibly other sources, e.g., World 
-  Bank.  
+  Merge and analyze data from 
+  \href{https://en.wikipedia.org/wiki/Armed_Conflict_Location_and_Event_Data}{Armed Conflict Location and Event Data}
+  (ACLED) and other sources, e.g., World Bank.  
 }
 \section{Introduction}{
   With luck, \pkg{acledr} will eventually provide vignettes 
@@ -31,26 +31,39 @@
       package. 
     }
     \item {
-      Create \code{ACLEDctryCode} named character vector
-      to facilitate translation between the "country" or 
-      geographic entity included in the \code{ACLED} 
-      summary data and the corresponding 3-letter 
+      Create \code{ACLEDctryCode}, a named character 
+      vector to facilitate translation between the 
+      "country" or geographic entity included in the 
+      ACLED summary data and the corresponding 3-letter 
       \href{https://en.wikipedia.org/wiki/List_of_ISO_3166_country_codes}{ISO 3166 country code}, 
       which can further be used to merge ACLED data with 
       data from other sources, e.g., World Bank, World 
       Health Organization, etc. 
     }
+    \item{ 
+       Create \code{ACLEDpopGDP}, a  
+       \code{\link{data.frame}} of ACLED country names 
+       and ISO 316 three-letter codes plus the name of 
+       the country used by the World Bank and population
+       and average annual income (Gross Domestic Product 
+       per capita, GDPpc), both 
+       \href{https://en.wikipedia.org/wiki/List_of_countries_by_GDP_(nominal)}{nominal}, 
+       i.e., at current exchange rates (GDPpcn), and 
+       \href{https://en.wikipedia.org/wiki/List_of_countries_by_GDP_(PPP)}{at purchasing power parity} 
+       (PPP, GDPpcp) for 2020:2023 and average. 
+    }
     \item {
-      Merge various \code{ACLED} data sets with 
-      \code{WBdat}, do simple analyses and save for 
-      subsequent analysis. 
+      \code{ACLED_WBmerge}: Merge various \code{ACLED} data 
+      sets with \code{ACLEDpopGDP}, do simple analyses, and 
+      save for subsequent analyses. 
     }
   }
   
-  \code{acledr} version 0.0-2 includes the first 
-  of the 5 R Markdown vignettes just outlined and 
-  the datasets created by it. Future versions 
-  will contain more of these vignettes. 
+  \code{acledr} version 0.0-3 includes the first 
+  three of the five R Markdown vignettes just outlined 
+  and the datasets created by them. Future versions 
+  will contain the remaining vignettes and possibly 
+  more. 
 }
 %\section{Usage for package building}{
 %  The \dQuote{Rcpp-package} vignette documents how to use Rcpp in client packages.
