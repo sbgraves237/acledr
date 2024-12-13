@@ -5,7 +5,7 @@
 }
 \description{
   Three-letter ISO-3166 codes for all the "Country" codes 
-  in the {ACLED} database. 
+  in the ACLED database. 
 }
 \usage{
   data(ACLEDctryCode)
