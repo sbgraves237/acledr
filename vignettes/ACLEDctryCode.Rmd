@@ -92,9 +92,9 @@ Done: We now have `ISO3` codes for all `ACLEDctries1`.
 
 ## 6. Save 
 
-Save `ACLEDpopGDP`.
+Save `ACLEDpopGDP`. Execute ONLY if you actually want to update the data in the package (or are running this vignette in a context outside of a pacakge like `acledr`).  
 
 ```{r save}
-usethis::use_data(ACLEDctryCode)
+# usethis::use_data(ACLEDctryCode, overwrite=TRUE)
 ```
 
