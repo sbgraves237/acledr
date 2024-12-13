@@ -1,0 +1,100 @@
+---
+title: "Create ACLED country code vector"
+author: "Spencer Graves"
+date: "2024-12-09"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteEngine{knitr::knitr}
+  %\VignetteIndexEntry{ACLEDctryCode}
+  %\usepackage[UTF-8]{inputenc}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+
+This vignette merges the `ctry` and `WBdat` datasets 
+created by the `readACLEDsummaryData` and 
+`readWorldBankData` vignettes and creates a named 
+character vector `ACLEDctryCode`  to facilitate 
+translation between the "country" or geographic 
+entity included in `ACLED` data and the corresponding 
+3-letter [ISO 3166 country code](https://en.wikipedia.org/wiki/List_of_ISO_3166_country_codes).
+
+We proceed as follows: 
+
+1. Access `data(ctry)` and `data(WBdat)`. 
+2. Create `ACLEDctryCode empty as character(nrow(ctry))`. 
+3. Fill `ACLEDctryCode` with the `WBdat CtryCode` for every `WBdat Country` in the ACLED data `ctry`. 
+4. Find the desired 3-letter ISO codes in [`rworldmap::countrySynonyms`](https://search.r-project.org/CRAN/refmans/rworldmap/html/countrySynonyms.html) for for countries NOT in `WBdat` with the name used by ACLED. 
+5. Manually find the desired 3-letter codes for other ACLED countries in `ctry` that steps 3 and 4 did not find. 
+6. Save. 
+
+## 1. `data(ctry)` and `data(WBdat)`
+
+```{r load_ctry}
+library(acledr)
+data(ctry)
+data(WBdat)
+##
+```
+
+## 2. Create `ACLEDctryCode`
+
+```{r createACLEDcc}
+ACLEDctryCode <- character(nrow(ctry))
+names(ACLEDctryCode) <- ctry$Country
+```
+
+## 3. Fill `ACLEDctryCode` from `WBdat`
+
+```{r ctryCdFrWB}
+str(ACLEDinWB <- grepInTable(ctry$Country, 
+                              WBdat[4:3]))
+ACLEDctryCode[names(ACLEDinWB)] <- ACLEDinWB
+
+NnchACLEDinWB <- table(nchar(ACLEDctryCode))
+nNotInWB <- (sum(NnchACLEDinWB) - NnchACLEDinWB[1])
+
+str(ACLEDnotInWB <- which(nchar(ACLEDctryCode)!=3))
+```
+
+## 4. Find ISO3 in `countrySynonyms` for ACLED countries not in `WBdat`
+
+```{r notInWB}
+ISO3notInWB <- grepInTable(names(ACLEDnotInWB))
+ISO3notWB3 <- (nchar(ISO3notInWB)==3)
+ACLEDctryCode[ACLEDnotInWB[ISO3notWB3]] <- 
+                      ISO3notInWB[ISO3notWB3]
+(mysteryCtries <- names(ACLEDnotInWB[!ISO3notWB3]))
+table(nchar(ACLEDctryCode))
+```
+
+## 5. Manually find `ISO3` for ACLEd countries not yet found 
+
+The Wikipedia article on ["List of ISO 3166 country codes"
+](https://en.wikipedia.org/wiki/List_of_ISO_3166_country_codes) says, "Caribbean Netherlands – See Bonaire, Sint Eustatius and Saba", for which `ISO3 = BES`. It also says that [Christmas Island](https://en.wikipedia.org/wiki/Christmas_Island) is a territory of Australia with `ISO3 = CXR`. 
+
+Let's add those codes to `ACLEDctryCodes`.
+
+```{r ACLEDctryCode9}
+ACLEDctryCode['Caribbean Netherlands'] <- 'BES'
+ACLEDctryCode['Christmas Island'] <- 'CXR'
+str(ACLEDctryCode)
+head(ACLEDctryCode)
+(NnchACLEDctCd <- table(nchACLEDctCd <- nchar(ACLEDctryCode)))
+(ACLEDctNotFound <- sum(NnchACLEDctCd[-1]))
+```
+
+Done: We now have `ISO3` codes for all `ACLEDctries1`. 
+
+## 6. Save 
+
+Save `ACLEDpopGDP`.
+
+```{r save}
+usethis::use_data(ACLEDctryCode)
+```
+
