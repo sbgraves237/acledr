@@ -18,10 +18,10 @@
   \enumerate{
     \item {
       \code{readACLEDsummarydata}: 
-      Access \code{ACLED} summary data, read it into R as 
-      a \code{\link{data.frame}}, then save it with a few 
+      Access ACLED summary data, read it into R as a 
+      \code{\link{data.frame}}, then save it with a few 
       summaries as \code{data.frame}s in the package 
-      described in the help file \code{link{acledSum}}.
+      described in the help file \code{\link{acledSum}}.
     }
     \item {
       \code{readWorldBankData}: Access data downlaoded 
