@@ -727,7 +727,7 @@ Looks sensible.
 Save `ACLEDpopGDP`. Execute ONLY if you actually want to update the data in the package (or are running this vignette in a context outside of a pacakge like `acledr`).  
 
 ```{r save}
-#usethis::use_data(ACLEDctryCode, overwrite=TRUE)
+# usethis::use_data(ACLEDctryCode, overwrite=TRUE)
 # or
 # save(ACLEDctryCode, 'ACLEDctryCode.rda', compress=TRUE)
 ```
