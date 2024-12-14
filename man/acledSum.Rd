@@ -1,4 +1,5 @@
 \name{acledSum}
+\alias{acledSum}
 \alias{ctryMoEv}
 \alias{ctryMo}
 \alias{ctryEv}
