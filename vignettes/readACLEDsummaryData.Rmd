@@ -41,7 +41,7 @@ There's a problem with this however, because the `ACLED` data extracts, which I 
 
 I met these limits by doing two things: 
 
-1. Putting these large files in an `extdata` subdirectory of the *parent* of the `acledr` package directory *and* by putting much smaller extracts in `~/acledr/inst/extdata`. These smaller files contained sample data from 2023-12-01 to 2024-01-31.  
+1. Putting these large files in an `extdata` subdirectory of the *parent* of the `acledrsg` package directory *and* by putting much smaller extracts in `~/acledr/inst/extdata`. These smaller files contained sample data from 2023-12-01 to 2024-01-31.  
 2. Writing a function `findSubdir` to look first for an `extdata` file in the parent of the package directory, then in the package directory itself, and then in an `inst` subdirectory of the package. (Wickham and Bryan suggested functions that were supposed to be able to do this, but I could not make them work. The function I wrote worked for this purpose at least locally and in GitHub Actions.)
 
 On 2024-12-07 GitHub Action was throwing an error on this vignette. To isolate that error, I added a variable `run` with the following acceptable values: 
@@ -54,11 +54,11 @@ On 2024-12-07 GitHub Action was throwing an error on this vignette. To isolate t
 
 With `run` = `noSearch` or `noRead`, the package checked fine both on my local computer and on GitHub. With `run` = any of the other three, the package checked fine locally but failed with GitHub Action on all 5 platforms. 
 
-GitHub Action worked through obtaining `extdata` path to the subdirectory of the `acledr` package with `run = "findExtr"` but failed when actually trying to read such files with `run = "readExtr"` or `"all"`. 
+GitHub Action worked through obtaining `extdata` path to the subdirectory of the `acledrsg` package with `run = "findExtr"` but failed when actually trying to read such files with `run = "readExtr"` or `"all"`. 
 ```{r extdata}
 run <- c("noSearch", "noDir", "noRead", 'read', "allButSave", "all")[5]
 if(run %in% c("noDir", "noRead", 'read', "allButSave", "all")){
-  library(acledr)
+  library(acledrsg)
   (extdata <- findSubdir())
 }
 ```
