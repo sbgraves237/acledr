@@ -42,7 +42,7 @@ With `run` = `noSearch` , `noDir`, or `noRead`, the package checked fine both on
 GitHub Action worked through obtaining `extdata` path to the subdirectory of the `acledrsg` package with `run = "findExtr"` but failed when actually trying to read such files with `run = "readExtr"` or `"all"`. 
 
 ```{r extdata}
-run <- c("noSearch", "noDir", "noRead", 'read', "allButSave", "all")[5]
+run <- c("noSearch", "noDir", "noRead", 'read', "allButSave", "all")[1]
 if(run %in% c("noDir", "noRead", 'read', "allButSave", "all")){
   library(acledrsg)
   (extdata <- findSubdir())
