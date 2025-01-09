@@ -35,7 +35,7 @@ We proceed as follows:
 ## 1. `data(ctry)` and `data(WBdat)`
 
 ```{r load_ctry}
-library(acledr)
+library(acledrsg)
 data(ctry)
 data(WBdat)
 ##
@@ -92,7 +92,7 @@ Done: We now have `ISO3` codes for all `ACLEDctries1`.
 
 ## 6. Save 
 
-Save `ACLEDpopGDP`. Execute ONLY if you actually want to update the data in the package (or are running this vignette in a context outside of a pacakge like `acledr`).  
+Save `ACLEDpopGDP`. Execute ONLY if you actually want to update the data in the package (or are running this vignette in a context outside of a pacakge like `acledrsg`).  
 
 ```{r save}
 # usethis::use_data(ACLEDctryCode, overwrite=TRUE)
