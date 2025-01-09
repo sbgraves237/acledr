@@ -21,10 +21,10 @@ We first create an empty `data.frame`, then fill it starting with `WBdat` and ma
 
 ## Create `ACLEDpopGDP` 
 
-Let's create a `data.frame` with the `ACLED` and `WorldBank` country names plus the 3-letter ISO codes and the `WB` population and GDP data for 2020, 2021, 2022, and 2023 plus a "Comment" column that would be blank for the countries for which we have `WB` data and a comment on the source used otherwise, e.g., "Wikipedia", and give the actual date for the data and other information, e.g., exchange rate Euros to US dollars. Then add it to the `acledr` package.
+Let's create a `data.frame` with the `ACLED` and `WorldBank` country names plus the 3-letter ISO codes and the `WB` population and GDP data for 2020, 2021, 2022, and 2023 plus a "Comment" column that would be blank for the countries for which we have `WB` data and a comment on the source used otherwise, e.g., "Wikipedia", and give the actual date for the data and other information, e.g., exchange rate Euros to US dollars. Then add it to the `acledrsg` package.
 
 ```{r ACLEDpopGDP0}
-library(acledr)
+library(acledrsg)
 ACLEDpopGDP <- data.frame(ACLEDcountry=names(ACLEDctryCode), 
   ISO3=as.character(ACLEDctryCode), WBcountry=NA, 
   pop2020=NA, pop2021=NA, pop2022=NA, pop2023=NA, pop=NA, 
@@ -724,7 +724,7 @@ Looks sensible.
 
 ## Save 
 
-Save `ACLEDpopGDP`. Execute ONLY if you actually want to update the data in the package (or are running this vignette in a context outside of a pacakge like `acledr`).  
+Save `ACLEDpopGDP`. Execute ONLY if you actually want to update the data in the package (or are running this vignette in a context outside of a pacakge like `acledrsg`).  
 
 ```{r save}
 # usethis::use_data(ACLEDpopGDP, overwrite=TRUE)
