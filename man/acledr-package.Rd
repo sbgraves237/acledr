@@ -20,15 +20,14 @@
       \code{readACLEDsummarydata}: 
       Access ACLED summary data, read it into R as a 
       \code{\link{data.frame}}, then save it with a few 
-      summaries as \code{data.frame}s in the package 
+      summaries as \code{data.frame}s in the formats 
       described in the help file \code{\link{acledSum}}.
     }
     \item {
       \code{readWorldBankData}: Access data downlaoded 
       from the World Bank for analysis with \code{ACLED}
-      data, read and save it as a dataset called 
-      \code{WBdat} associated with this \code{acledr}
-      package. 
+      data, read and save it in the format described in 
+      the help file \code{\link(WBdat}}. 
     }
     \item {
       Create \code{ACLEDctryCode}, a named character 
