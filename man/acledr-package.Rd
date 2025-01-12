@@ -27,7 +27,7 @@
       \code{readWorldBankData}: Access data downlaoded 
       from the World Bank for analysis with \code{ACLED}
       data, read and save it in the format described in 
-      the help file \code{\link(WBdat}}. 
+      the help file \code{\link{WBdat}}. 
     }
     \item {
       Create \code{ACLEDctryCode}, a named character 
