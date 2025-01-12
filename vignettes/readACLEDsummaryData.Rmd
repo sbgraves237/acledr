@@ -1,7 +1,7 @@
 ---
 title: "Read ACLED summary data"
 author: "Spencer Graves"
-date: "2024-12-09"
+date: "2025-01-11"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteEngine{knitr::knitr}
@@ -30,6 +30,7 @@ Before we do that, we first attempt simpler tasks:
 2. Read World Bank (`WB`) data on population and level of econmic activity as Gross Domestic Product per capita (`GDPpc`) at both Purchasing Power Parity (`PPP`) and nominal: We need `PPP` to evaluate the impact of `GDPpc` and changes in `GDPpc` on the level of conflict. And we need nominal `GDP` to estimate budgets for certain types of interventions. (`GDP` is, of course, population times `GDPpc`.) 
 3. Merge `ACLED` and `WB` data. 
 4. Build static models of the relationships between `ACLED` and `WB` variables. 
+5. Build time series models of the numbers of events and deaths by month and their relationships with other veriables like `GDPpc` and public health. We might expect that increases in events and deaths might both impact economic activity and public health and be influenced by previous changes in such other variables. 
 
 ## Extract, download and read `ACLED` data 
 
@@ -56,7 +57,7 @@ With `run` = `noSearch` or `noRead`, the package checked fine both on my local c
 
 GitHub Action worked through obtaining `extdata` path to the subdirectory of the `acledrsg` package with `run = "findExtr"` but failed when actually trying to read such files with `run = "readExtr"` or `"all"`. 
 ```{r extdata}
-run <- c("noSearch", "noDir", "noRead", 'read', "allButSave", "all")[1]
+run <- c("noSearch", "noDir", "noRead", 'read', "allButSave", "all")[5]
 if(run %in% c("noDir", "noRead", 'read', "allButSave", "all")){
   library(acledrsg)
   (extdata <- findSubdir())
